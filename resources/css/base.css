@@ -1,0 +1,338 @@
+.clr-neutral-100 {
+  color: #ffffff;
+}
+
+.bg-neutral-100 {
+  background-color: #ffffff;
+}
+
+.clr-neutral-200 {
+  color: rgba(246, 246, 246, 0.9647058824);
+}
+
+.bg-neutral-200 {
+  background-color: rgba(246, 246, 246, 0.9647058824);
+}
+
+.clr-neutral-900 {
+  color: #1f3049;
+}
+
+.bg-neutral-900 {
+  background-color: #1f3049;
+}
+
+.clr-primary-400 {
+  color: #AAC4FF;
+}
+
+.bg-primary-400 {
+  background-color: #AAC4FF;
+}
+
+.clr-primary-500 {
+  color: #B1B2FF;
+}
+
+.bg-primary-500 {
+  background-color: #B1B2FF;
+}
+
+.clr-secondary-400 {
+  color: #EEF1FF;
+}
+
+.bg-secondary-400 {
+  background-color: #EEF1FF;
+}
+
+.clr-secondary-500 {
+  color: #D2DAFF;
+}
+
+.bg-secondary-500 {
+  background-color: #D2DAFF;
+}
+
+.pd-8 {
+  padding: 0.5rem;
+}
+
+.pd-12 {
+  padding: 0.75rem;
+}
+
+.pd-16 {
+  padding: 1rem;
+}
+
+.pd-20 {
+  padding: 1.25rem;
+}
+
+.pd-24 {
+  padding: 1.5rem;
+}
+
+.pd-32 {
+  padding: 2rem;
+}
+
+.pd-36 {
+  padding: 2.25rem;
+}
+
+.pd-48 {
+  padding: 3rem;
+}
+
+.fs-900 {
+  font-size: 3.75rem;
+}
+
+.fs-800 {
+  font-size: 3rem;
+}
+
+.fs-700 {
+  font-size: 2rem;
+}
+
+.fs-600 {
+  font-size: 1.5rem;
+}
+
+.fs-500 {
+  font-size: 1.3125rem;
+}
+
+.fs-400 {
+  font-size: 1.125rem;
+}
+
+.mbtm-8 {
+  margin-bottom: 0.5rem;
+}
+
+.mbtm-12 {
+  margin-bottom: 0.75rem;
+}
+
+.mbtm-16 {
+  margin-bottom: 1rem;
+}
+
+.mbtm-20 {
+  margin-bottom: 1.25rem;
+}
+
+.mbtm-24 {
+  margin-bottom: 1.5rem;
+}
+
+.mbtm-32 {
+  margin-bottom: 2rem;
+}
+
+.mbtm-36 {
+  margin-bottom: 2.25rem;
+}
+
+.mbtm-48 {
+  margin-bottom: 3rem;
+}
+
+/* Box sizing rules */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Prevent font size inflation */
+html {
+  -moz-text-size-adjust: none;
+  -webkit-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+/* Remove list styles on ul, ol elements with a list role, which suggests default styling will be removed */
+ul[role=list],
+ol[role=list] {
+  list-style: none;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+/* Set shorter line heights on headings and interactive elements */
+h1, h2, h3, h4,
+button, input, label {
+  line-height: 1.1;
+}
+
+/* Balance text wrapping on headings */
+h1, h2,
+h3, h4 {
+  text-wrap: balance;
+}
+
+/* A elements that don't have a class get default styles */
+a:not([class]) {
+  -webkit-text-decoration-skip: ink;
+          text-decoration-skip-ink: auto;
+  color: currentColor;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input, button,
+textarea, select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Make sure textareas without a rows attribute are not tiny */
+textarea:not([rows]) {
+  min-height: 10em;
+}
+
+/* Anything that has been anchored to should have extra scroll margin */
+:target {
+  scroll-margin-block: 5ex;
+}
+
+.flow > * + * {
+  margin-top: var(--flow-spacer, 1rem);
+}
+
+.grid-flow {
+  display: grid;
+  gap: var(--gap, 1rem);
+  justify-content: center;
+}
+
+.flex-row {
+  display: flex;
+  gap: var(--gap, 1rem);
+  align-items: center;
+}
+
+.cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, auto);
+  gap: 1.25rem;
+}
+
+.cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  gap: 1.25rem;
+}
+
+.cols-4 {
+  display: grid;
+  grid-template-columns: repeat(4, auto);
+  gap: 1.25rem;
+}
+
+.grid-row-full {
+  grid-column: 1/-1;
+}
+
+.text-start {
+  text-align: start;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-end {
+  text-align: end;
+}
+
+.fw-bold {
+  font-weight: 700;
+}
+
+.fw-extra-bold {
+  font-weight: 900;
+}
+
+.br-1 {
+  border-radius: 0.5rem;
+}
+
+.br-2 {
+  border-radius: 1rem;
+}
+
+.br-100 {
+  border-radius: 100%;
+}
+
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: min(1200px, 100% - 4vw);
+  margin-inline: auto;
+}
+
+main {
+  flex: 1;
+}
+
+li {
+  display: inline-block;
+}
+
+a {
+  -webkit-text-decoration: 0;
+          text-decoration: 0;
+}
+
+img {
+  -o-object-fit: cover;
+     object-fit: cover;
+  max-width: 100%;
+}
+
+input {
+  width: min(500px, 100% - 2vw);
+  padding: 0.5rem;
+  font-size: 1.125rem;
+}
+
+button {
+  padding: 0.5rem;
+  font-size: 1.125rem;
+  cursor: pointer;
+}
+
+.info img {
+  aspect-ratio: 1/1;
+  -o-object-position: 0 0;
+     object-position: 0 0;
+  max-width: 300px;
+}
+
+form input {
+  width: min(500px, 98vw);
+}/*# sourceMappingURL=base.css.map */
