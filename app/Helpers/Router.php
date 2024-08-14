@@ -4,7 +4,7 @@ namespace App\Helpers;
 use App\Core\View;
 
 class Router {
-    private static $ROUTES;
+    private static $ROUTES = array();
 
     public static function get($uri, $func): void {
 	self::registerRoute('GET', $uri, $func);
@@ -14,24 +14,24 @@ class Router {
 	self::registerRoute('POST', $uri, $func);
     }
 
-    private static function registerRoute($method, $route, $func): void {
-	self::$ROUTES[$method] = array($route => $func);
+    private static function registerRoute($method, $route, $callback): void {
+		array_key_exists($method, self::$ROUTES) ?: self::$ROUTES[$method] = array();
+		self::$ROUTES[$method][$route] = $callback;
     }
 
-    public static function handleRequest($request): void {
-	$routes = self::$ROUTES[ $request['METHOD'] ];
+    public static function handleRequest($request): int {
+		$routes = self::$ROUTES[ $request['METHOD'] ];
 	
-	
-	foreach($routes as $key => $value) {
-	    if ($request['URI'] == $key) {
-		$value();
-		break;
-	    }
-	}
+		foreach($routes as $key => $value) {
+			if ($request['URI'] == $key) {
+				is_array($value) ? call_user_func($value) : $value();
+				return 0;
+			}
+
+		}
+
+		throw new \Exception('Route doesn\'t exist');
 
     }
+
 }
-
-#Router::get('forum', function() {
-#    print_r('Something');
-#});
