@@ -3,6 +3,7 @@
 namespace App\Core;
 
 use App\Core\App;
+use App\Core\View;
 use App\Helpers\Router;
 use App\Helpers\Request;
 use App\Core\ServiceContainer;
@@ -17,7 +18,12 @@ class Bootstrap {
         self::bindServices();
 
         App::loadConfig( parse_ini_file($config_path) );
-        Router::handleRequest( Request::capture() );
+
+        try {
+	        Router::handleRequest( Request::capture() );
+        } catch (\Exception $e) {
+            View::render('error', ['error_code' => 404, 'error_message' => 'Page doesn\'t exist']);            
+        }
     }
 
     private static function bindServices() {

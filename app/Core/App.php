@@ -2,14 +2,13 @@
 
 namespace App\Core;
 use App\Helpers\Router;
-use App\Core\View;
 use App\Core\ServiceContainer;
 
 class App {
     private static $PARAMS;
     private static $PROJECT_ROOT = __DIR__.'/../../';
     private static $VIEWS_PATH = __DIR__.'/../../resources/views/';
-    private static $CACHE_PATH = __DIR__.'/../../cache';
+    private static $CACHE_PATH = __DIR__.'/../../cache/';
     private static $container;
 
     public static function base_path() {
@@ -31,14 +30,6 @@ class App {
         if ( isset(self::$container) ) { throw new \Exception("Container is already set"); }
 
         self::$container = $container;
-    }
-
-    public static function handleRequest($request): void {
-        try {
-	        Router::handleRequest($request);
-        } catch (\Exception $e) {
-            View::render('error', ['error_code' => 404, 'error_message' => 'Page doesn\'t exist']);            
-        }
     }
 
     public static function loadConfig($config): void {
