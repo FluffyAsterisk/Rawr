@@ -14,7 +14,16 @@ class Router {
 	self::registerRoute('POST', $uri, $func);
     }
 
+    public static function delete($uri, $func): void {
+	self::registerRoute('DELETE', $uri, $func);
+    }
+
+    public static function update($uri, $func): void {
+	self::registerRoute('UPDATE', $uri, $func);
+    }
+
     private static function registerRoute($method, $route, $callback): void {
+
 		array_key_exists($method, self::$ROUTES) ?: self::$ROUTES[$method] = array();
 		self::$ROUTES[$method][$route] = $callback;
     }
@@ -23,14 +32,15 @@ class Router {
 		$routes = self::$ROUTES[ $request['METHOD'] ];
 	
 		foreach($routes as $key => $value) {
-			if ($request['URI'] == $key) {
+			$uri = parse_url( $request['URI'] )['path'];
+			if ($uri == $key) {
 				is_array($value) ? call_user_func($value) : $value();
 				return 0;
 			}
 
 		}
 
-		throw new \Exception('Route doesn\'t exist');
+		throw new \Exception("Route {$request['URI']} doesn't exist");
 
     }
 

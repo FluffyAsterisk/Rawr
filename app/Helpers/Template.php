@@ -15,16 +15,17 @@ class Template {
 		require $cachedFile;
     }
 
-    public static function cache($filename):string {
-	$file = App::$VIEWS_PATH.$filename.'.php';
+    public static function cache($filename): string {
+	$file = App::views_path().$filename.'.php';
+
 	file_exists($file) ?: throw new MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file));
 
-	if (!file_exists(App::$CACHE_PATH)) {
-	    mkdir(App::$CACHE_PATH, 0774);
+	if (!file_exists(App::cache_path())) {
+	    mkdir(App::cache_path(), 0774);
 	}
 
 	$filename = $filename.'.php';
-	$cachedFile = App::$CACHE_PATH.str_replace(array('/','.html'), array('_', '.php'), $filename);
+	$cachedFile = App::cache_path().str_replace(array('/','.html'), array('_', '.php'), $filename);
 
 	if (true || !self::$cacheEnabled || !file_exists($cachedFile) || filemtime($cachedFile) < filemtime($file))
 	{
@@ -48,7 +49,8 @@ class Template {
     }
 
     private static function compileEcho($code):string {
-	return preg_replace('~^\s+?{{\s*(?!pretty)([^{\s].+?)\s*}}\s+?$~ism', '<?php echo $1 ?>', $code);
+		// .+?{{\s+?(?!pretty)(.+)\s+?}}
+	return preg_replace('~{{\s+?(?!pretty)(.+)\s+?}}~im', '<?php echo $1 ?>', $code);
     }
 
     private static function compilePrettyPrint($code):string {
@@ -56,7 +58,7 @@ class Template {
     }
 
     private static function includeFiles($filename): string {
-	$code = file_get_contents(App::$VIEWS_PATH.$filename);
+	$code = file_get_contents(App::views_path().$filename);
 	$matches = array();
 	preg_match_all('~^{{{\s*(extends|include)? ?\'?([^{\s].+?)\'?\s*}}}(\s+)?$~ism', $code, $matches, PREG_SET_ORDER);
 
