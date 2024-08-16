@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Helpers;
-use App\Core\View;
+
+use App\Core\App;
 
 class Router {
     private static $ROUTES = array();
@@ -23,25 +24,37 @@ class Router {
     }
 
     private static function registerRoute($method, $route, $callback): void {
-
 		array_key_exists($method, self::$ROUTES) ?: self::$ROUTES[$method] = array();
 		self::$ROUTES[$method][$route] = $callback;
     }
 
     public static function handleRequest($request): int {
 		$routes = self::$ROUTES[ $request['METHOD'] ];
+		$uri = parse_url( $request['URI'] )['path'];
 	
-		foreach($routes as $key => $value) {
-			$uri = parse_url( $request['URI'] )['path'];
-			if ($uri == $key) {
-				is_array($value) ? call_user_func($value) : $value();
-				return 0;
-			}
+		$callback = self::resolveRoute($routes, $uri);
 
+		if ( is_array($callback) ) {
+			$controller = new $callback[0]( App::get('db') );
+			$controller->{$callback[1]}();
+		} else {
+			$callback();
 		}
 
 		throw new \Exception("Route {$request['URI']} doesn't exist");
 
     }
+
+	private static function resolveRoute($routes, $uri) {
+		foreach($routes as $key => $value) {
+
+			if ($uri == $key) 
+			{
+				return $value;
+			}
+
+		}
+
+	}
 
 }

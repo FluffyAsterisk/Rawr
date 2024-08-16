@@ -8,10 +8,14 @@ class View {
 	
     public static function render($file, $data=[]) {
         try {
-	        Template::render($file, $data);
+	        $template = Template::prepare($file, $data);
         } catch (MissingTemplateException $e) {
             echo($e->getMessage());
+            die();
         }
+
+		extract($data);
+		require $template;
     }
 
 }

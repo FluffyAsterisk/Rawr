@@ -2,7 +2,9 @@
 
 namespace App\Core;
 
-class ServiceContainer {
+use Psr\Container\ContainerInterface;
+
+class ServiceContainer implements ContainerInterface {
     private static $instance;
     private $allocator = [];
 
@@ -14,18 +16,26 @@ class ServiceContainer {
         return self::$instance;
     }
 
-    public function bind($name, $fn) {
-        if ( array_key_exists($name, $this->allocator) ) {
+    public function bind($id, $loader) {
+        if ( $this->has($id) ) 
+        {
             throw new \Exception('Service already exists');
-        } else {
-            $this->allocator[$name] = $fn;
+        } 
+        else 
+        {
+            $this->allocator[$id] = new ServiceInstance($id, $loader);
         }
     }
 
-    public function get($name) {
-        array_key_exists($name, $this->allocator) ??
-            throw new \Exception("{$name} doesn't exist in service container");
+    public function get($id) {
+        if ( !$this->has($id) ) {
+            throw new \Exception("{$id} doesn't exist in service container");
+        }
 
-        return $this->allocator[$name];
+        return $this->allocator[$id]->getService($this);
+    }
+
+    public function has($id): bool {
+        return array_key_exists( $id, $this->allocator );
     }
 }

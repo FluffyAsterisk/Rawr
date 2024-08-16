@@ -7,7 +7,15 @@ use App\Core\View;
 use App\Core\App;
 
 class MainController extends BaseController {
-    public static function index() {
+    public function __construct(private $pdo) {}
+
+    public function index() {
+        $pretty = App::get('prettyPrint');
+
+        $st = $this->pdo->prepare('SELECT * FROM `users`');
+        $st->execute();
+        $pretty( $st->fetchAll() );
+
         View::render('index');
     }
 }

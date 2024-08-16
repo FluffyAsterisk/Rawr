@@ -3,3 +3,4 @@ vendor/
 .env
 resources/css/*.scss
 resources/css/components/
+cache/

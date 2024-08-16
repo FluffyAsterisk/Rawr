@@ -23,10 +23,20 @@ class App {
         return self::$CACHE_PATH;
     }
 
-    public static function setContainer($container) {
+    public static function db_cred() {
+        // return [
+        //     'DB_ENGINE' => self::$PARAMS['DB_ENGINE'],
+        //     'DB_HOST' => self::$PARAMS['DB_HOST'],
+        //     'DB_NAME' => self::$PARAMS['DB_NAME'],
+        //     'DB_USERNAME' => self::$PARAMS['DB_USERNAME'],
+        //     'DB_PASSWORD' => self::$PARAMS['DB_PASSWORD'],
+        // ];
+        return self::$PARAMS;
+    }
+
+    public static function setContainer(ServiceContainer $container) {
         $c = get_class($container);
 
-        is_a($container, ServiceContainer::class) ?? throw new \Exception("Container should have class of ServiceContainer, not {$c}");
         if ( isset(self::$container) ) { throw new \Exception("Container is already set"); }
 
         self::$container = $container;
@@ -42,8 +52,8 @@ class App {
         }
     }
 
-    public static function bind($name, $fn) {
-        self::$container->bind($name, $fn);
+    public static function bind($name, $loader) {
+        self::$container->bind($name, $loader);
     }
 
     public static function get($name) {

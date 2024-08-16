@@ -9,10 +9,8 @@ class Template {
     public static $data;
     private static $cacheEnabled = False;
 
-    public static function render($file, $data=[]): void {
-		$cachedFile = self::cache($file);
-		extract($data);
-		require $cachedFile;
+    public static function prepare($file): string {
+		return self::cache($file);
     }
 
     public static function cache($filename): string {
