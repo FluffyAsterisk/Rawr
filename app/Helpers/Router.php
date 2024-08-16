@@ -2,59 +2,59 @@
 
 namespace App\Helpers;
 
-use App\Core\App;
+use App\Core\ServiceContainer;
 
 class Router {
-    private static $ROUTES = array();
+    private $ROUTES = array();
 
-    public static function get($uri, $func): void {
-	self::registerRoute('GET', $uri, $func);
+	public function __construct(private ServiceContainer $container) {}
+
+    public function get($uri, $func): void {
+	$this->registerRoute('GET', $uri, $func);
     }
 
-    public static function post($uri, $func): void {
-	self::registerRoute('POST', $uri, $func);
+    public function post($uri, $func): void {
+	$this->registerRoute('POST', $uri, $func);
     }
 
-    public static function delete($uri, $func): void {
-	self::registerRoute('DELETE', $uri, $func);
+    public function delete($uri, $func): void {
+	$this->registerRoute('DELETE', $uri, $func);
     }
 
-    public static function update($uri, $func): void {
-	self::registerRoute('UPDATE', $uri, $func);
+    public function update($uri, $func): void {
+	$this->registerRoute('UPDATE', $uri, $func);
     }
 
-    private static function registerRoute($method, $route, $callback): void {
-		array_key_exists($method, self::$ROUTES) ?: self::$ROUTES[$method] = array();
-		self::$ROUTES[$method][$route] = $callback;
+    private function registerRoute($method, $route, $callback): void {
+		array_key_exists($method, $this->ROUTES) ?: $this->ROUTES[$method] = array();
+		$this->ROUTES[$method][$route] = $callback;
     }
 
-    public static function handleRequest($request): int {
-		$routes = self::$ROUTES[ $request['METHOD'] ];
+    public function handleRequest($request): int {
+		$routes = $this->ROUTES[ $request['METHOD'] ];
 		$uri = parse_url( $request['URI'] )['path'];
 	
-		$callback = self::resolveRoute($routes, $uri);
+		$callback = $this->resolveRoute($routes, $uri);
 
 		if ( is_array($callback) ) {
-			$controller = new $callback[0]( App::get('db') );
+			$controller = new $callback[0]( $this->container->get(\PDO::class), $this->container->get(\App\Core\View::class) );
 			$controller->{$callback[1]}();
 		} else {
-			$callback();
+			$callback($this->container->get(\App\Core\View::class), $this->container->get(\App\Helpers\Request::class));
 		}
-
-		throw new \Exception("Route {$request['URI']} doesn't exist");
 
     }
 
-	private static function resolveRoute($routes, $uri) {
-		foreach($routes as $key => $value) {
-
+	private function resolveRoute($routes, $uri) {
+		foreach($routes as $key => $value) 
+		{
 			if ($uri == $key) 
 			{
 				return $value;
 			}
-
 		}
 
+		throw new \Exception("Route {$request['URI']} doesn't exist");
 	}
 
 }

@@ -2,69 +2,74 @@
 
 namespace App\Helpers;
 
-use App\Core\App;
-use App\Exceptions\MissingTemplateException;
-
 class Template {
-    public static $data;
-    private static $cacheEnabled = False;
+    public $data;
+    private $cacheEnabled = False;
+	// Path to rendered file
+	private $filePath;
 
-    public static function prepare($file): string {
-		return self::cache($file);
+	public function __construct(private \App\Core\App $app) {}
+
+	public function filePath(): string {
+		return $this->filePath;
+	}
+
+    public function prepare($file) {
+		$this->filePath = $this->cache($file);
     }
 
-    public static function cache($filename): string {
-	$file = App::views_path().$filename.'.php';
+    private function cache($filename): string {
+		$file = $this->app->views_path().$filename.'.php';
+		$cache_path = $this->app->cache_path();
 
-	file_exists($file) ?: throw new MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file));
+		file_exists($file) ?: throw new \App\Exceptions\MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file));
 
-	if (!file_exists(App::cache_path())) {
-	    mkdir(App::cache_path(), 0774);
-	}
+		if (!file_exists($cache_path)) {
+			mkdir($cache_path, 0774);
+		}
 
-	$filename = $filename.'.php';
-	$cachedFile = App::cache_path().str_replace(array('/','.html'), array('_', '.php'), $filename);
+		$filename = $filename.'.php';
+		$cachedFile = $cache_path.str_replace(array('/','.html'), array('_', '.php'), $filename);
 
-	if (true || !self::$cacheEnabled || !file_exists($cachedFile) || filemtime($cachedFile) < filemtime($file))
-	{
-	    $code = self::includeFiles($filename);
-	    $code = self::compileTemplate($code);
-	    file_put_contents($cachedFile, $code);
-	}
+		if (true || !$this->$cacheEnabled || !file_exists($cachedFile) || filemtime($cachedFile) < filemtime($file))
+		{
+			$code = $this->includeFiles($filename);
+			$code = $this->compileTemplate($code);
+			file_put_contents($cachedFile, $code);
+		}
     
-	return $cachedFile;
+		return $cachedFile;
     }
 
-    public static function compileTemplate($code):string {
-		$code = self::compilePhp($code);
-		$code = self::compileEcho($code);
-	    $code = self::compilePrettyPrint($code);
+    private function compileTemplate($code):string {
+		$code = $this->compilePhp($code);
+		$code = $this->compileEcho($code);
+	    $code = $this->compilePrettyPrint($code);
 		return $code;
     }
 
-    private static function compilePhp($code):string {
-	return preg_replace('~^\s+{\s*([^{\s].+?)\s*}\s+?$~ism', '<?php $1 ?>', $code);
+    private function compilePhp($code):string {
+		return preg_replace('~^\s+{\s*([^{\s].+?)\s*}\s+?$~ism', '<?php $1 ?>', $code);
     }
 
-    private static function compileEcho($code):string {
-		// .+?{{\s+?(?!pretty)(.+)\s+?}}
-	return preg_replace('~{{\s+?(?!pretty)(.+)\s+?}}~im', '<?php echo $1 ?>', $code);
+    private function compileEcho($code):string {
+		return preg_replace('~{{\s+?(?!pretty)(.+)\s+?}}~im', '<?php echo $1 ?>', $code);
     }
 
-    private static function compilePrettyPrint($code):string {
-	return preg_replace('~^\s+?{{\s*pretty ([^{\s].+?)\s*}}\s+?$~ism', '<pre style="text-align:left;"><?php print_r($1); ?></pre>', $code);
+    private function compilePrettyPrint($code):string {
+		return preg_replace('~^\s+?{{\s*pretty ([^{\s].+?)\s*}}\s+?$~ism', '<pre style="text-align:left;"><?php print_r($1); ?></pre>', $code);
     }
 
-    private static function includeFiles($filename): string {
-	$code = file_get_contents(App::views_path().$filename);
-	$matches = array();
-	preg_match_all('~^{{{\s*(extends|include)? ?\'?([^{\s].+?)\'?\s*}}}(\s+)?$~ism', $code, $matches, PREG_SET_ORDER);
+    private function includeFiles($filename): string {
+		$code = file_get_contents($this->app->views_path().$filename);
+		$matches = array();
+		preg_match_all('~^{{{\s*(extends|include)? ?\'?([^{\s].+?)\'?\s*}}}(\s+)?$~ism', $code, $matches, PREG_SET_ORDER);
 
-	foreach ($matches as $value) {
-    	$code = str_replace($value[0], self::includeFiles($value[2]), $code);
-	}
+		foreach ($matches as $value) {
+			$code = str_replace($value[0], $this->includeFiles($value[2]), $code);
+		}
 
-	return $code;
+		return $code;
     }
 
 }

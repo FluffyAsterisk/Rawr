@@ -6,56 +6,58 @@ use App\Core\App;
 use App\Core\View;
 use App\Helpers\Router;
 use App\Helpers\Request;
+use App\Helpers\Template;
 use App\Core\ServiceContainer;
 
 class Bootstrap {
     public static function init() {
-        $config_path = App::base_path().'.env';
+        $c = ServiceContainer::init();
+        self::bindServices($c);
 
-        // ServiceContainer instantiated inside a static method
-        App::setContainer( ServiceContainer::init() );
-        self::bindServices();
+        $app = $c->get(App::class);
+        $config_path = $app->base_path().'.env';
 
-        App::loadConfig( parse_ini_file($config_path) );
+        $app->loadConfig( $config_path );
+        $request = $c->get(Request::class);
 
-        try {
-	        Router::handleRequest( Request::capture() );
-        } catch (\Exception $e) {
-            View::render('error', ['error_code' => 404, 'error_message' => 'Page doesn\'t exist']); 
-        }
+        self::initRoutes($c, $app->base_path().'routes.php');
+
+        ( $c->get(Router::class) )->handleRequest( ( $c->get(Request::class) )->capture() );
     }
 
-    private static function bindServices() {
-        App::bind('prettyPrint', function() {
+    private static function initRoutes(ServiceContainer $c, $filePath) {
+        $router = $c->get(Router::class);
 
-            return function($value) {
-                print_r('<pre>');
-                print_r($value);
-                print_r('</pre>');
-            };
+        require $filePath;
+    }
 
+    private static function bindServices(ServiceContainer $c) {
+        $c->bind(Template::class, function(ServiceContainer $c) {
+            return new Template( $c->get(App::class) );
         });
 
-        App::bind('sanitizer', function() {
-
-            return function($string) {
-        	    return htmlspecialchars( strip_tags( trim( $string ) ) );
-            };
-
+        $c->bind(Router::class, function(ServiceContainer $c) {
+            return new Router($c);
         });
 
-        App::bind('db', function(ServiceContainer $c) {
-            $credentials = App::db_cred();
-            $t = gettype($credentials);
-            if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
-            extract($credentials);
+        $c->bind(View::class, function(ServiceContainer $c) {
+            return new View( $c->get(Template::class) );
+        });
 
-            $dsn = sprintf("%s:dbname=%s;user=%s;password=%s;", $DB_ENGINE, $DB_NAME, $DB_USERNAME, $DB_PASSWORD);
-            $dsn = isset( $DB_HOST ) ? $dsn . "host={$DB_HOST};" : $dsn;
-            $dsn = isset( $DB_PORT ) ? $dsn . "port={$DB_PORT};" : $dsn;
+        $c->bind(\PDO::class, function(ServiceContainer $c) 
+            {
+                $credentials = ( $c->get(App::class) )->db_cred();
+                $t = gettype($credentials);
+                if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
+                extract($credentials);
 
-            return new \PDO($dsn);
-        } );
+                $dsn = sprintf("%s:dbname=%s;user=%s;password=%s;", $DB_ENGINE, $DB_NAME, $DB_USERNAME, $DB_PASSWORD);
+                $dsn = isset( $DB_HOST ) ? $dsn . "host={$DB_HOST};" : $dsn;
+                $dsn = isset( $DB_PORT ) ? $dsn . "port={$DB_PORT};" : $dsn;
+
+                return new \PDO($dsn);
+            }
+        );
 
     }
 }

@@ -1,21 +1,20 @@
 <?php
 
 namespace App\Core;
-use App\Helpers\Template;
-use App\Exceptions\MissingTemplateException;
 
 class View {
+    public function __construct(private $template) {}
 	
-    public static function render($file, $data=[]) {
+    public function render($file, $data=[]) {
         try {
-	        $template = Template::prepare($file, $data);
-        } catch (MissingTemplateException $e) {
+	        $this->template->prepare($file);
+        } catch (\App\Exceptions\MissingTemplateException $e) {
             echo($e->getMessage());
             die();
         }
 
 		extract($data);
-		require $template;
+		require $this->template->filePath();
     }
 
 }

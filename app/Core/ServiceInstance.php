@@ -9,12 +9,21 @@ class ServiceInstance {
     private $instance;
     private $loader;
 
-    public function __construct($name, $loader) {
+    public function __construct($name, $loader = null) {
+        // You can pass to the function: an ID without a callback, an ID with a callback, an object
+
         $this->name = $name;
 
-        if ($loader instanceof \Closure) {
+        if (!$loader) 
+        {
+            $this->instance = new $name();
+        } 
+        elseif ($loader instanceof \Closure) 
+        {
             $this->loader = $loader;
-        } else {
+        } 
+        else 
+        {
             $this->instance = $loader;
         }
     }

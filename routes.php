@@ -1,17 +1,14 @@
 <?php
 
-use App\Helpers\Router;
-use App\Helpers\Request;
-use App\Core\View;
 use App\Controllers\MainController;
 
-Router::get('/', function() {
-    View::render('index');
+$router->get('/', function($view, $request) {
+    $view->render('index');
 });
 
-Router::post('/reg', function() {
-    $request = Request::capture();
-    print_r($request);
+$router->post('/reg', function($view, $request) {
+    $req = $request->capture();
+    print_r($req);
 });
 
-Router::get('/control', [ MainController::class, 'index' ]);
+$router->get('/control', [ MainController::class, 'index' ]);
