@@ -3,11 +3,10 @@
 namespace App\Core;
 
 use App\Core\App;
-use App\Core\View;
 use App\Helpers\Router;
 use App\Helpers\Request;
-use App\Helpers\Template;
 use App\Core\ServiceContainer;
+use App\Helpers\Sanitizer;
 
 class Bootstrap {
     public static function init() {
@@ -15,38 +14,32 @@ class Bootstrap {
         self::bindServices($c);
 
         $app = $c->get(App::class);
-        $config_path = $app->base_path().'.env';
+        $app->loadConfig( $app->base_path().'.env' );
 
-        $app->loadConfig( $config_path );
-        $request = $c->get(Request::class);
-
-        self::initRoutes($c, $app->base_path().'routes.php');
-
-        ( $c->get(Router::class) )->handleRequest( ( $c->get(Request::class) )->capture() );
+        self::initRouter($c, $app);
     }
 
-    private static function initRoutes(ServiceContainer $c, $filePath) {
+    private static function initRouter(ServiceContainer $c, App $app) {
+        $request = $c->get(Request::class);
         $router = $c->get(Router::class);
 
+        self::initRoutes($router, $app->base_path().'routes.php');
+        $router->handleRequest( $request->capture() );
+    }
+
+    private static function initRoutes($router, $filePath) {
         require $filePath;
     }
 
     private static function bindServices(ServiceContainer $c) {
-        $c->bind(Template::class, function(ServiceContainer $c) {
-            return new Template( $c->get(App::class) );
-        });
-
-        $c->bind(Router::class, function(ServiceContainer $c) {
-            return new Router($c);
-        });
-
-        $c->bind(View::class, function(ServiceContainer $c) {
-            return new View( $c->get(Template::class) );
+        $c->bind(App::class, function(ServiceContainer $c) {
+            return new App( $c->get(Sanitizer::class) );
         });
 
         $c->bind(\PDO::class, function(ServiceContainer $c) 
             {
-                $credentials = ( $c->get(App::class) )->db_cred();
+                $app = $c->get(App::class);
+                $credentials = $app->db_cred();
                 $t = gettype($credentials);
                 if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
                 extract($credentials);

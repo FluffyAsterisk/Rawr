@@ -7,11 +7,17 @@ use App\Exceptions\ContainerException;
 
 class ServiceContainer implements ContainerInterface {
     private static $instance;
+    private static $isAutoBind = 0;
     private $allocator = [];
 
-    public static function init() {
+    public function __construct(bool $autoBind) {
+        if ( isset(self::$instance) ) { throw new ContainerException("Container should be created using init method, not construct"); }
+        self::$isAutoBind = $autoBind;
+    }
+
+    public static function init(bool $autoBind = false) {
         if ( !isset(self::$instance) ) {
-            self::$instance = new self();
+            self::$instance = new self($autoBind);
         }
         
         return self::$instance;
@@ -40,36 +46,44 @@ class ServiceContainer implements ContainerInterface {
         return array_key_exists( $id, $this->allocator );
     }
 
-    public function resolve($id) {
+    private function resolve($id) {
         $refl = new \ReflectionClass($id);
         $con = $refl->getConstructor();
 
         // If class has no constructor or constructor with no parameters
-        if (!$con) {
-            $this->bind($id);
-            return $this->get($id);
+        if ( !$con || !$con->getParameters() ) 
+        {
+            if (self::$isAutoBind) {
+                $this->bind($id);
+                return $this->get($id);
+            } else { return new $id; }
         }
 
         $parameters = $con->getParameters();
+        $dependencies = $this->resolveDependencies($parameters);
 
-        if (!$parameters) {
-            $this->bind($id);
-            return $this->get($id);
-        }
+        return $refl->newInstanceArgs($dependencies);
+    }
 
-        $dependencies = array_map(function(\ReflectionParameter $par)
+    private function resolveDependencies(array $parameters) {
+        return array_map(function(\ReflectionParameter $par)
         {
             $name = $par->getName();
             $type = $par->getType();
 
             if ( !$type ) { throw new ContainerException("Can't resolve variable {$name} because it has no type hint"); }
+            if ( $type instanceof \ReflectionUnionType ) { throw new ContainerException("Union type classes is not supported"); }
 
+            if ( $type == ServiceContainer::class ) {
+                return $this->init();
+            }
+            
             if ( !$type->isBuiltin() ) {
                 return $this->get( $type->getName() );
             }
 
-        }, $parameters);
+            throw new ContainerException("Couldn't resolve {$name} typeof {$type}");
 
-        return $refl->newInstanceArgs($dependencies);
+        }, $parameters);
     }
 }

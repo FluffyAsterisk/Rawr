@@ -3,7 +3,7 @@
 namespace App\Helpers;
 
 class Request {
-	public function __construct(private Cache $cache) {}
+	public function __construct() {}
 
     public static function capture(): array {
 		$meth = $_SERVER['REQUEST_METHOD'];

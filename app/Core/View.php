@@ -2,8 +2,10 @@
 
 namespace App\Core;
 
+use App\Helpers\Template;
+
 class View {
-    public function __construct(private $template) {}
+    public function __construct(private Template $template) {}
 	
     public function render($file, $data=[]) {
         try {

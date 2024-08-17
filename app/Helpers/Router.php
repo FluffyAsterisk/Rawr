@@ -30,20 +30,43 @@ class Router {
 		$this->ROUTES[$method][$route] = $callback;
     }
 
-    public function handleRequest($request): int {
+    public function handleRequest($request) {
 		$routes = $this->ROUTES[ $request['METHOD'] ];
 		$uri = parse_url( $request['URI'] )['path'];
 	
 		$callback = $this->resolveRoute($routes, $uri);
 
-		if ( is_array($callback) ) {
-			$controller = new $callback[0]( $this->container->get(\PDO::class), $this->container->get(\App\Core\View::class) );
+		if ( is_array($callback) ) 
+		{
+			$controller = $this->container->get($callback[0]);
 			$controller->{$callback[1]}();
-		} else {
-			$callback($this->container->get(\App\Core\View::class), $this->container->get(\App\Helpers\Request::class));
+		} 
+		else 
+		{
+			$this->resolveCallbackFunction($callback);
 		}
 
     }
+
+	private function resolveCallbackFunction($callback) {
+		$reflection = new \ReflectionFunction($callback);
+		$parameters = $reflection->getParameters();
+		
+		$dependencies = array_map(function (\ReflectionParameter $par) {
+			$name = $par->getName();
+			$type = $par->getType();
+
+			if (!$type) { throw new \Exception("Route callback function parameter {$name} has no typehint"); }
+
+			if ( !$type->isBuiltin() ) {
+				return $this->container->get( $type->getName() );
+			}
+			
+
+		}, $parameters);
+
+		$reflection->invokeArgs($dependencies);
+	}
 
 	private function resolveRoute($routes, $uri) {
 		foreach($routes as $key => $value) 
