@@ -2,7 +2,7 @@
 
 namespace App\Helpers;
 
-class Logger {
+class Loger {
     public function prettyPrint($value) {
         print_r('<pre>');
         print_r($value);

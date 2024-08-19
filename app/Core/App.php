@@ -10,20 +10,24 @@ class App {
 
     public function __construct(private \App\Helpers\Sanitizer $sanitizer) {}
 
-    public function base_path() {
+    public function base_path(): string {
         return self::PROJECT_ROOT;
     }
 
-    public function views_path() {
+    public function views_path(): string {
         return self::VIEWS_PATH;
     }
 
-    public function cache_path() {
+    public function cache_path(): string {
         return self::CACHE_PATH;
     }
 
-    public function db_cred() {
-        return $this->PARAMS;
+    public function db_cred(): array {
+        $this->filterParams("DB");
+    }
+
+    public function redis_cred(): array {
+        $this->filterParams("REDIS");
     }
 
     public function loadConfig($config): void {
@@ -35,5 +39,11 @@ class App {
             $value = $sanitizer->sanitizeString($value);
             $this->PARAMS[$key] = $value;
         }
+    }
+
+    private function filterParams(string $str): array {
+        return array_filter($this->PARAMS, function ($key) {
+            if ( str_contains($key, $str) ) { return $key; }
+        }, ARRAY_FILTER_USE_KEY);
     }
 }

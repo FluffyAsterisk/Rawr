@@ -19,7 +19,9 @@ class Template {
     }
 
     private function cache($filename): string {
-		$file = $this->app->views_path().$filename.'.php';
+		$f = str_contains($filename, '.php') ? $filename : $filename . '.php';
+
+		$file = $this->app->views_path().$f;
 		$cache_path = $this->app->cache_path();
 
 		file_exists($file) ?: throw new \App\Exceptions\MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file));

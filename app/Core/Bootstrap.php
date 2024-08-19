@@ -16,6 +16,13 @@ class Bootstrap {
         $app = $c->get(App::class);
         $app->loadConfig( $app->base_path().'.env' );
 
+        $lg = $c->get(\App\Helpers\Loger::class);
+        $cB = new \App\Caching\FileCacheBack($app);
+
+        // $cB->set('user', 'testuser', \DateInterval::createFromDateString('60 sec'));
+        // $lg->prettyPrint( $cB->get('user') );
+        $cB->clear();
+        die();
         self::initRouter($c, $app);
     }
 
@@ -32,6 +39,15 @@ class Bootstrap {
     }
 
     private static function bindServices(ServiceContainer $c) {
+        $c->bind(\Redis::class, function(ServiceContainer $c) {
+            $host = ( $c->get(App::class) )->redis_cred();
+
+            $redis =  new \Redis();
+            $redis->connect($host);
+
+            return $redis;
+        });
+
         $c->bind(App::class, function(ServiceContainer $c) {
             return new App( $c->get(Sanitizer::class) );
         });
@@ -51,6 +67,10 @@ class Bootstrap {
                 return new \PDO($dsn);
             }
         );
+
+        $c->bind(Cache::class, function(ServiceContainer $c) {
+            return new Cache( $c->get(\App\Caching\FileCacheBack::class), $c->get(\App\Caching\BaseCacheFront::class) );
+        });
 
     }
 }

@@ -4,6 +4,6 @@
 namespace App\Interfaces;
 
 interface CacheSystem {
-    public function serialize();
-    public function deserialize();
+    public function save();
+    public function load();
 }

@@ -1,16 +1,19 @@
 <?php
 
-namespace App\Helpers;
+declare(strict_types = 1);
+
+namespace App\Caching;
 
 use Psr\SimpleCache\CacheInterface;
 
-class Cache implements CacheInterface {
-    public function __construct(private \App\Interfaces\CacheBackInterface $cachingBack, private \App\Interfaces\CacheFrontInterface $cachingFront) {}
+class RedisCache implements CacheInterface {
+    public function __construct(private readonly \Redis $redis) {}
 
     public function get(string $key, mixed $default = null): mixed
     {
-        $encData = $this->cachingBack->load($key);
-        return $this->cachingFront->decode($encData);
+        $value = $this->redis->get($key);
+
+        return $value === false ? $default : $value;
     }
 
     public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
@@ -48,6 +51,7 @@ class Cache implements CacheInterface {
     {
 
     }
+
 
 
 }
