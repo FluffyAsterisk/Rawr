@@ -3,9 +3,13 @@
 namespace App\Helpers;
 
 use Psr\SimpleCache\CacheInterface;
+use App\Interfaces\CacheFrontInterface;
+use App\Enums\CacheType;
 
 class Cache implements CacheInterface {
-    public function __construct(private CacheInterface $cachingBack, private \App\Interfaces\CacheFrontInterface $cachingFront) {}
+    public function __construct(private CacheInterface $cachingBack, private CacheFrontInterface $cachingFront, CacheType $cacheType = CacheType::Encoded) {
+        $this->setCacheType($cacheType);
+    }
 
     public function get(string $key, mixed $default = null): mixed
     {
@@ -16,7 +20,7 @@ class Cache implements CacheInterface {
     public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
     {
         $encValue = $this->cachingFront->encode($value);
-        return $this->cachingBack->set($key, $encValue);
+        return $this->cachingBack->set($key, $encValue, $ttl);
     }
 
     public function delete(string $key): bool
@@ -45,13 +49,12 @@ class Cache implements CacheInterface {
     {
         $cachhingFront = $this->cachingFront;
 
-        $encDataGen = (function() use ($values, $cachhingFront) {
-            foreach ($values as $key => $value) {
-                yield $key => $cachhingFront->encode($value);
-            }
-        })();
+        $encodedData = [];
+        foreach ($values as $key => $value) {
+            $encodedData[$key] = $this->cachingFront->encode($value);
+        }
 
-        return $this->cachingBack->setMultiple($encDataGen, $ttl);
+        return $this->cachingBack->setMultiple($encodedData, $ttl);
     }
 
     public function deleteMultiple(iterable $keys): bool
@@ -64,5 +67,8 @@ class Cache implements CacheInterface {
         return $this->cachingBack->has($key);
     }
 
+    private function setCacheType(\App\Enums\CacheType $type) {
+        $this->cachingFront->setCacheType($type);
+    }
 
 }

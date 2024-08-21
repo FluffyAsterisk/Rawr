@@ -8,6 +8,7 @@ use App\Helpers\Request;
 use App\Core\ServiceContainer;
 use App\Helpers\Sanitizer;
 use App\Helpers\Cache;
+use App\Enums\CacheType;
 
 class Bootstrap {
     public static function init() {
@@ -16,7 +17,6 @@ class Bootstrap {
 
         $app = $c->get(App::class);
         $app->loadConfig( $app->base_path().'.env' );
-
         
         self::initRouter($c, $app);
     }
@@ -30,20 +30,20 @@ class Bootstrap {
     }
 
     private static function initRoutes($router, $filePath) {
-        require $filePath;
+        require_once $filePath;
     }
 
     private static function bindServices(ServiceContainer $c) {
         $c->bind(\Redis::class, function(ServiceContainer $c) {
             $credentials = ( $c->get(App::class) )->redis_cred();
-            $t = gettype($credentials);
-
-            if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
 
             extract($credentials);
 
+            $c = ['host' => (int) $REDIS_HOST];
+            if (isset($REDIS_PORT)) { $c['port'] = (int) $REDIS_PORT; }
+            if (isset($REDIS_USERNAME) && isset($REDIS_PASSWORD)) { $c['auth'] = [$REDIS_USERNAME, $REDIS_PASSWORD]; }
+            
             $redis = new \Redis();
-            $redis->connect($REDIS_HOST);
 
             return $redis;
         });
@@ -55,9 +55,6 @@ class Bootstrap {
         $c->bind(\PDO::class, function(ServiceContainer $c) 
             {
                 $credentials = ( $c->get(App::class) )->db_cred();
-                $t = gettype($credentials);
-
-                if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
 
                 extract($credentials);
 
@@ -70,7 +67,14 @@ class Bootstrap {
         );
 
         $c->bind(Cache::class, function(ServiceContainer $c) {
-            return new Cache( $c->get(\App\Caching\RedisCache::class), $c->get(\App\Caching\BaseCacheFront::class) );
+            $params = ( $c->get(App::class) )->cache_params();
+
+            extract($params);
+
+            $CACHE_ENGINE = sprintf("%sCache", strtolower($CACHE_ENGINE) );
+            $CACHE_ENGINE = "\App\Caching\\" . ucfirst( $CACHE_ENGINE );
+
+            return new Cache( $c->get($CACHE_ENGINE), $c->get(\App\Caching\BaseCacheFront::class), CacheType::fromName($CACHE_TYPE) );
         });
 
     }

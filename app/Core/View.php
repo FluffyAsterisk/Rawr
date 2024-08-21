@@ -9,14 +9,13 @@ class View {
 	
     public function render($file, $data=[]) {
         try {
-	        $this->template->prepare($file);
+	        $this->template->init($file, true, 300);
         } catch (\App\Exceptions\MissingTemplateException $e) {
             echo($e->getMessage());
             die();
         }
 
-		extract($data);
-		require $this->template->filePath();
+        $this->template->render($data);
     }
 
 }

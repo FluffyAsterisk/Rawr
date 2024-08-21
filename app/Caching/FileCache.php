@@ -2,9 +2,10 @@
 
 namespace App\Caching;
 
+use Psr\SimpleCache\CacheInterface;
 use App\Exceptions\CacheException;
 
-class FileCacheBack implements CacheBackInterface {
+class FileCache implements CacheInterface {
     public function __construct(private \App\Core\App $app, private \App\Helpers\Sanitizer $sanitizer) {}
 
     public function get(string $key, mixed $default = null): string|null {
@@ -82,7 +83,7 @@ class FileCacheBack implements CacheBackInterface {
     }
 
     public function has(string $key) : bool {
-        return file_exists( $this->app->cache_path() . $key );
+        return file_exists( $this->app->cache_path() . $key ) && !$this->isExpired($key);
     }
 
     private function isExpired($key): bool {

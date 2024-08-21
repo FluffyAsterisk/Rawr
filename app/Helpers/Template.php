@@ -3,44 +3,55 @@
 namespace App\Helpers;
 
 class Template {
-    public $data;
-    private $cacheEnabled = False;
-	// Path to rendered file
-	private $filePath;
+	private $filename;
+    private $cacheEnabled;
+	private $ttl;
+	private $fileContent;
 
-	public function __construct(private \App\Core\App $app) {}
+	public function __construct(private \App\Core\App $app, private \App\Helpers\Cache $cache) {}
 
-	public function filePath(): string {
-		return $this->filePath;
-	}
+    public function init(string $filename, bool $enableCache = False, int $ttl = 500) {
+		$this->filename = str_contains($filename, '.php') ? $filename : $filename . '.php';
+		$this->ttl = $ttl;
+		$this->cacheEnabled = $enableCache;
 
-    public function prepare($file) {
-		$this->filePath = $this->cache($file);
+		$this->fileContent = $this->compile();
     }
 
-    private function cache($filename): string {
-		$f = str_contains($filename, '.php') ? $filename : $filename . '.php';
+	public function render($data = []) {
+		$cachingEngine = $this->app->cache_params()['CACHE_ENGINE'];
+		$file_path = $this->app->cache_path() . $this->filename;
+		
+		file_put_contents($file_path, $this->fileContent);
 
-		$file = $this->app->views_path().$f;
-		$cache_path = $this->app->cache_path();
+		$this->requireFile($file_path, $data);
 
-		file_exists($file) ?: throw new \App\Exceptions\MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file));
+		unlink($file_path);
 
-		if (!file_exists($cache_path)) {
-			mkdir($cache_path, 0774);
-		}
+		return true;
+	}
 
-		$filename = $filename.'.php';
-		$cachedFile = $cache_path.str_replace(array('/','.html'), array('_', '.php'), $filename);
+	private function requireFile($file_path, $data = []) {
+		extract($data);
 
-		if (true || !$this->$cacheEnabled || !file_exists($cachedFile) || filemtime($cachedFile) < filemtime($file))
-		{
-			$code = $this->includeFiles($filename);
-			$code = $this->compileTemplate($code);
-			file_put_contents($cachedFile, $code);
-		}
-    
-		return $cachedFile;
+		require_once $file_path;
+	}
+
+    private function compile(): string {
+		$filename = $this->filename;
+
+		if ($this->cacheEnabled && $this->cache->has($filename)) { return $this->cache->get($filename); }
+
+		$file_path = $this->app->views_path().$filename;
+
+		file_exists($file_path) ?: throw new \App\Exceptions\MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file_path));
+
+		$code = $this->includeFiles($filename);
+		$code = $this->compileTemplate($code);
+
+		if ($this->cacheEnabled) { $this->cache->set($filename, $code, $this->ttl); }
+
+		return $code;
     }
 
     private function compileTemplate($code):string {

@@ -30,6 +30,10 @@ class App {
         return $this->filterParams("REDIS");
     }
 
+    public function cache_params(): array {
+        return $this->filterParams("CACHE");
+    }
+
     public function loadConfig($config): void {
         $config = parse_ini_file($config);
         $sanitizer = $this->sanitizer;
