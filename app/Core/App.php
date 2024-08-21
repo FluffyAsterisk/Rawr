@@ -23,11 +23,11 @@ class App {
     }
 
     public function db_cred(): array {
-        $this->filterParams("DB");
+        return $this->filterParams("DB");
     }
 
     public function redis_cred(): array {
-        $this->filterParams("REDIS");
+        return $this->filterParams("REDIS");
     }
 
     public function loadConfig($config): void {
@@ -42,7 +42,7 @@ class App {
     }
 
     private function filterParams(string $str): array {
-        return array_filter($this->PARAMS, function ($key) {
+        return array_filter($this->PARAMS, function ($key) use ($str) {
             if ( str_contains($key, $str) ) { return $key; }
         }, ARRAY_FILTER_USE_KEY);
     }

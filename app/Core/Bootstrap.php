@@ -7,6 +7,7 @@ use App\Helpers\Router;
 use App\Helpers\Request;
 use App\Core\ServiceContainer;
 use App\Helpers\Sanitizer;
+use App\Helpers\Cache;
 
 class Bootstrap {
     public static function init() {
@@ -16,13 +17,7 @@ class Bootstrap {
         $app = $c->get(App::class);
         $app->loadConfig( $app->base_path().'.env' );
 
-        $lg = $c->get(\App\Helpers\Loger::class);
-        $cB = new \App\Caching\FileCacheBack($app);
-
-        // $cB->set('user', 'testuser', \DateInterval::createFromDateString('60 sec'));
-        // $lg->prettyPrint( $cB->get('user') );
-        $cB->clear();
-        die();
+        
         self::initRouter($c, $app);
     }
 
@@ -40,10 +35,15 @@ class Bootstrap {
 
     private static function bindServices(ServiceContainer $c) {
         $c->bind(\Redis::class, function(ServiceContainer $c) {
-            $host = ( $c->get(App::class) )->redis_cred();
+            $credentials = ( $c->get(App::class) )->redis_cred();
+            $t = gettype($credentials);
 
-            $redis =  new \Redis();
-            $redis->connect($host);
+            if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
+
+            extract($credentials);
+
+            $redis = new \Redis();
+            $redis->connect($REDIS_HOST);
 
             return $redis;
         });
@@ -54,10 +54,11 @@ class Bootstrap {
 
         $c->bind(\PDO::class, function(ServiceContainer $c) 
             {
-                $app = $c->get(App::class);
-                $credentials = $app->db_cred();
+                $credentials = ( $c->get(App::class) )->db_cred();
                 $t = gettype($credentials);
+
                 if ( !is_array($credentials) ) { throw new \Exception("DB credentials should be passed as array, not {$t}"); }
+
                 extract($credentials);
 
                 $dsn = sprintf("%s:dbname=%s;user=%s;password=%s;", $DB_ENGINE, $DB_NAME, $DB_USERNAME, $DB_PASSWORD);
@@ -69,7 +70,7 @@ class Bootstrap {
         );
 
         $c->bind(Cache::class, function(ServiceContainer $c) {
-            return new Cache( $c->get(\App\Caching\FileCacheBack::class), $c->get(\App\Caching\BaseCacheFront::class) );
+            return new Cache( $c->get(\App\Caching\RedisCache::class), $c->get(\App\Caching\BaseCacheFront::class) );
         });
 
     }

@@ -1,3 +1,4 @@
+.vscode/
 resources/js/react/
 vendor/
 .env

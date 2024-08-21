@@ -2,31 +2,32 @@
 
 namespace App\Caching;
 
-use App\Interfaces\CacheBackInterface;
 use App\Exceptions\CacheException;
 
 class FileCacheBack implements CacheBackInterface {
-    public function __construct(private \App\Core\App $app) {}
+    public function __construct(private \App\Core\App $app, private \App\Helpers\Sanitizer $sanitizer) {}
 
-    public function set(string $key, string $data, \DateInterval|int|null $ttl = null): bool {
+    public function get(string $key, mixed $default = null): string|null {
+        $filepath = $this->app->cache_path() . $key;
+
+        if ( !file_exists($filepath) ) {
+            return $default;
+        };
+        
+        if (!$this->isExpired($key)) {
+            return $this->hasExpire($key) ? $this->readExceptFirst($filepath) : file_get_contents($filepath);
+        }
+    }
+
+    public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool {
         $filepath = $this->app->cache_path() . $key;
 
         if ( isset($ttl) ) {
             $ttl = is_int($ttl) ? time() + $ttl : ( new \DateTime() )->add($ttl)->getTimestamp();
-            $data = $ttl . "\n" . $data;
+            $value = $this->sanitizer->wrapString($ttl) . "\n" . $value;
         }
 
-        return file_put_contents($filepath, $data);
-    }
-
-    public function get(string $key): string {
-        $filepath = $this->app->cache_path() . $key;
-
-        if (!$this->isExpired($key)) {
-            return $this->readExceptFirst($filepath);
-        }
-
-        throw new CacheException("{$key} doesn't exist in cache");
+        return file_put_contents($filepath, $value);
     }
 
     public function delete(string $key): bool {
@@ -35,18 +36,53 @@ class FileCacheBack implements CacheBackInterface {
         return unlink($filepath);
     }
 
-    public function clear() {
+    public function clear(): bool {
         $cache_dir = $this->app->cache_path();
         $cache_files = scandir( $cache_dir );
+        $r = true;
 
-        print_r("<pre>");
-        foreach ($cache_files as $file) {
-            // unlink($file);
-            print_r($cache_dir . $file . "\n");
+        foreach (glob($cache_dir.'*') as $file) {
+            $r = $r && unlink($file);
         }
-        print_r("</pre>");
 
-        return true;
+        return $r;
+    }
+
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
+    {
+        $result = [];
+
+        foreach ($keys as $key) {
+            $result[$key] = $this->get($key, $default);
+        }
+
+        return $result;
+    }
+
+    public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
+    {
+        $r = true;
+
+        foreach ($values as $key => $value) {
+            $r = $r && $this->set($key, $value, $ttl);
+        }
+
+        return $r;
+    }
+
+    public function deleteMultiple(iterable $keys): bool
+    {
+        $r = true;
+
+        foreach ($keys as $key) {
+            $r = $r && $this->delete($key);
+        }
+
+        return $r;
+    }
+
+    public function has(string $key) : bool {
+        return file_exists( $this->app->cache_path() . $key );
     }
 
     private function isExpired($key): bool {
@@ -59,16 +95,37 @@ class FileCacheBack implements CacheBackInterface {
 
             fclose($f);
 
-            preg_match("~^\d+$~m", $firstLine, $ttl);
+            $s = $this->sanitizer->getWrapSmbl();
+            preg_match('~^'. $s .'\d+' . $s . '$~m', $firstLine, $ttl);
 
             if ($ttl) {
-                $ttl = intval( $ttl[0] );
+                $ttl = intval( $this->sanitizer->unwrapString( $ttl[0] ) );
 
                 return $ttl < time();
             }
 
             return false;
         }
+    }
+
+    private function hasExpire($key): bool {
+        $s = $this->sanitizer->getWrapSmbl();
+        $fl = $this->getFirstLine($key);
+        return preg_match('~^'. $s .'\d+' . $s . '$~m', $fl);
+    }
+
+    private function getFirstLine($key):string|bool {
+        $filepath = $this->app->cache_path() . $key;
+
+        if ( file_exists($filepath) ) {
+            $f = fopen($filepath, 'r');
+            $firstLine = fgets( $f );
+            fclose($f);
+            
+            return $firstLine;
+        }
+
+        return false;
     }
 
     // Reads all file except first line
@@ -92,4 +149,5 @@ class FileCacheBack implements CacheBackInterface {
 
         return $file ?? false;
     }
+
 }

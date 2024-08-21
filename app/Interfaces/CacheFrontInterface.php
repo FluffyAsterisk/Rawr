@@ -3,6 +3,6 @@
 namespace App\Interfaces;
 
 interface CacheFrontInterface {
-    public function encode($data);
-    public function decode($data);
+    public function encode(string $data): string|bool;
+    public function decode(string $data): string|bool;
 }

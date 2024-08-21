@@ -18,38 +18,53 @@ class RedisCache implements CacheInterface {
 
     public function set(string $key, mixed $value, \DateInterval|int|null $ttl = null): bool
     {
-        $encData = $this->cachingFront->encode($data);
-        return $this->cachingBack->save($key, $encData);
+        if ($ttl) {
+            // TODO DateInterval Support!!!!!
+            $ttl = is_int($ttl) ? $tll : 100;
+        }
+        return $this->redis->set($key, $value);
     }
 
     public function delete(string $key): bool
     {
-        return $this->cachingBack->delete($key);
+        return $this->redis->del($key) ? true : false;
     }
 
     public function clear(): bool 
     {
-        
+        return $this->redis->flushAll();
     }
 
-    public function getMultiple(iterable $keys, mixed $default = null): is_iterable
+    public function getMultiple(iterable $keys, mixed $default = null): iterable
     {
+        $result = [];
 
+        foreach ($keys as $key) {
+            array_push( $result, $this->get($key, $default) );
+        }
+
+        return $result;
     }
 
     public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
     {
+        $r = true;
 
+        foreach ($values as $key => $value) {
+            $r = $r && $this->set($key, $value, $ttl);
+        }
+
+        return $r;
     }
 
     public function deleteMultiple(iterable $keys): bool
     {
-
+        return $this->redis->del($keys) ? true : false;
     }
 
     public function has(string $key): bool
     {
-
+        return $this->redis->exists() ? true : false;
     }
 
 
