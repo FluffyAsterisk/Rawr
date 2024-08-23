@@ -14,7 +14,7 @@ class ServiceInstance {
 
         $this->name = $name;
 
-        if (!$loader) 
+        if (!$loader && !is_string($name)) 
         {
             $this->instance = new $name();
         } 

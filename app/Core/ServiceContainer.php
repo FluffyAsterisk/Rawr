@@ -23,7 +23,7 @@ class ServiceContainer implements ContainerInterface {
         return self::$instance;
     }
 
-    public function bind($id, $loader = null) {
+    public function bind($id, callable|null $loader = null) {
         if ( $this->has($id) ) 
         {
             throw new \Exception("Service {$id} already exists");
