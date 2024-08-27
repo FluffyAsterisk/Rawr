@@ -8,44 +8,49 @@ use App\Helpers\Cache;
 abstract class DataMapper {
     protected string $class;
 
-    public function __construct(private \PDO $db) {}
+    public function __construct(private \PDO $pdo, private \App\Helpers\Sanitizer $sanitizer) {}
 
     public function selectAll() {
         $r = [];
-        $table = $this->tableName;
-        $query = $this->db->query("SELECT * FROM $table");
+        $table = $this->tableName ?? (new \ReflectionClass($this::class))->getShortName();
+        $query = $this->pdo->query("SELECT * FROM $table");
         $query->setFetchMode(\PDO::FETCH_CLASS, $this->class);
 
         return $query->fetchAll();
     }
 
-    public function save(array|object $objects) {
-        $class = new \ReflectionClass($this->class);
+    public function save(array $objects) {
+        $class = new \ReflectionClass($this::class);
+        $propsValues = [];
+        $onDuplicate = [];
 
-        $tableName = isset($this->tableName) ? $this->tableName : strtolower( $class->getShortName() );
+        $tableName = $this->tableName ?? strtolower( $class->getShortName() );
         $props = $this->getClassProperties($class);
-        $toImplode = [];
-        $onUpdate = [];
+        $objCount = count($objects);
         
         foreach ($props as $prop) {
-            array_push($onUpdate, "$prop = VALUES($prop)");
+            array_push($onDuplicate, "$prop = VALUES($prop)");
         }
         
-        if ( is_array($objects) ) 
-        {
-            foreach ( $objects as $object ) { array_push($toImplode, $this->stringifyProps($props, $object)); }
-        } 
-        else { array_push($toImplode, $this->stringifyProps($props, $objects)); }
+        foreach ( $objects as $object ) { $propsValues = array_merge( $propsValues, $this->stringifyProps($props, $object) ); }
         
-        $sql = sprintf( "INSERT INTO `%s` (%s) VALUES %s ON DUPLICATE KEY UPDATE %s", $this->tableName, implode(', ', $props), implode(', ', $toImplode), implode(', ', $onUpdate));
+        $placeholder = str_repeat('(' . 
+                        rtrim( str_repeat('?, ', count($props)), ", ")
+                         . '), ', $objCount);
 
-        print_r($toImplode);
+        $placeholder = rtrim($placeholder, ', ');
 
-        die();
+        $sql = "INSERT INTO " . $tableName . " (" . implode(', ', $props) . ") VALUES " . $placeholder . " ON DUPLICATE KEY UPDATE " . implode(', ', $onDuplicate);
         
-        print_r('<pre>');
-        print_r($values);
-        print_r('</pre>');
+        $stmt = $this->pdo->prepare($sql);
+
+        $stmt->execute($propsValues);
+    }
+
+    public function delete() {
+        $tableName = $this->tableName ?? (new \ReflectionClass($this::class))->getShortName();
+
+        $sql = "DELETE FROM " . $tableName . " WHERE ";
     }
 
     private function getClassProperties($reflection) {
@@ -62,11 +67,13 @@ abstract class DataMapper {
         $p = [];
 
         foreach ($props as $prop) {
-            array_push($p, $object->{$prop});
+            $val = $this->sanitizer->sanitizeString( $object->{$prop} );
+            $p[] = $val == null ? null : $val;
         }
 
-        return "(" . implode(', ', $p) . ")";
+        return $p;
     }
+
 }
 
 // INSERT INTO table_name (column1, column2, column3, ...) VALUES (value1, value2, value3, ...);

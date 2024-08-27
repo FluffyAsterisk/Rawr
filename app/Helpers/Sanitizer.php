@@ -5,11 +5,11 @@ namespace App\Helpers;
 class Sanitizer {
     private const wrapSmbl = '@';
 
-    public function getWrapSmbl() {
+    public function getWrapSmbl():string {
         return self::wrapSmbl;
     }
 
-    public function sanitizeString($string) {
+    public function sanitizeString($string): string {
         return htmlspecialchars( strip_tags( trim( $string ) ) );
     }
 

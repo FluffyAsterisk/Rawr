@@ -62,7 +62,11 @@ class Bootstrap {
                 $dsn = isset( $DB_HOST ) ? $dsn . "host={$DB_HOST};" : $dsn;
                 $dsn = isset( $DB_PORT ) ? $dsn . "port={$DB_PORT};" : $dsn;
 
-                return new \PDO($dsn);
+                try {
+                    return new \PDO($dsn);
+                } catch (\PDOException $e) {
+                    throw new \PDOException($e->getMessage(), (int) $e->getCode());
+                }
             }
         );
 

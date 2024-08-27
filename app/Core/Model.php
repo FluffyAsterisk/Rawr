@@ -5,6 +5,17 @@ namespace App\Core;
 abstract class Model {
     private mixed $data;
 
+    public function __construct(array $values = []) {
+        $class = $this::class;
+        $refl = new \ReflectionClass($this::class);
+        $objProps = $refl->getProperties(\ReflectionProperty::IS_PROTECTED);
+        if (is_int( $values[0] )) { throw new \Exception("Params should be passed as associative array in $class constructor"); }
+
+        foreach ($values as $key => $value ) {
+            $this->{$key} = $value;
+        }
+    }
+
     public function tableName() {
         return $this->tableName;
     }
