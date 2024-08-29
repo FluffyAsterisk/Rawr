@@ -3,34 +3,27 @@
 namespace App\Controllers;
 
 use App\Core\Controller as BaseController;
-use App\Core\View;
 use App\Models\UserMapper;
-use App\Models\User;
+use App\Core\View;
 
 class MainController extends BaseController {
-    public function __construct(private View $view, private UserMapper $userMapper) {}
+    public function __construct(private View $view, private UserMapper $userMapper, private \App\Helpers\QueryBuilderMapper $queryBuilder) {}
 
     public function index() {
         // $this->view->render('index', [], false);
-        $users = $this->userMapper->selectAll();
+
+        $this->queryBuilder->initMapper($this->userMapper);
+
+        $data = [
+            ['name' => 'user', 'password' => 12345, 'role' => 1],
+            ['name' => 'user1', 'password' => 54321],
+        ];
+
+        // $sql = $this->queryBuilder->insert()->setTable('users')->setValues($data)->write();
+        // $sql = $this->uMapper->update()->setTable('users')->setValues(['name' => 'Oleg', 'password' => 12345])->where()->equals('id', 4)->write();
+        // $sql = $this->uMapper->delete()->setTable('users')->write();
+        $users = $this->queryBuilder->select()->setTable('users')->columns(['*'])->where()->greaterThan('id', 3)->execute();
+
         print_r($users);
-
-        die();
-
-        $user = $this->user->where('id', 3)->get();
-
-        $user->username = 'someotherusername';
-        $user->password = 'someotherpassword';
-        $user->save();
-        
-        $users = $this->user->get();
-        foreach ($users as $user) {
-            print_r($user->username);
-        }
-        $this->uMapper->save($users);
-
-
-
-        // $this->userMapper->save( [$user] );
     }
 }

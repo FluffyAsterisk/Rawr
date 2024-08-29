@@ -7,9 +7,8 @@ abstract class Model {
 
     public function __construct(array $values = []) {
         $class = $this::class;
-        $refl = new \ReflectionClass($this::class);
-        $objProps = $refl->getProperties(\ReflectionProperty::IS_PROTECTED);
-        if (is_int( $values[0] )) { throw new \Exception("Params should be passed as associative array in $class constructor"); }
+
+        if ($values && is_int( $values[0] )) { throw new \Exception("Params should be passed as associative array in $class constructor"); }
 
         foreach ($values as $key => $value ) {
             $this->{$key} = $value;
@@ -17,7 +16,9 @@ abstract class Model {
     }
 
     public function tableName() {
-        return $this->tableName;
+        $class = new \ReflectionClass($this::class);
+
+        return $this->tableName ?? $class->getShortName();
     }
 
     public function __get(string $key): mixed {
@@ -32,13 +33,60 @@ abstract class Model {
         throw new \Exception("Cannot set property $key. It does not exist in $class object");
     }
 
-    public static function mapFromArray(array $data) {
-        $o = new self();
+    public function getProperties() {
+        $refl = new \ReflectionClass($this::class);
+        $properties = [];
 
-        foreach ($data as $key => $value) {
-            $o->{$key} = $value;
+        foreach ( ( $refl->getProperties(\ReflectionProperty::IS_PROTECTED) ) as $prop) {
+            array_push($properties, $prop->getName());
         }
 
-        return $o;
+        return $properties;
+    }
+
+    public function hasMany(string $class, $foreignKey = null, $ownerKey = null) {
+        $this->relations[] = new Relation(RelationType::OneToMany, $this->class, $class);
+    }
+
+    public function belongsToMany(string $class, $foreignKey = null, $ownerKey = null) {
+        $this->relations[] = new Relation(RelationType::OneToMany, $class, $this->class);
+    }
+
+    public function hasOne(string $class, $foreignKey = null, $ownerKey = null) {
+        $this->relations[] = new Relation(RelationType::OneToOne, $this->class, $class);
+    }
+
+    public function belongsTo(string $class, $foreignKey = null, $ownerKey = null) {
+        $this->relations[] = new Relation(RelationType::OneToOne, $class, $this->class);
+    }
+}
+
+enum RelationType: int {
+    case OneToMany = 1;
+    case ManyToMany = 2;
+    case OneToOne = 3;   
+}
+
+class Relation {
+    public RelationType $type;
+    private string $parent;
+    private string $child;
+
+    public function __construct(RelationType $type, string $parent, string $child) {
+        $this->setType($type);
+        $this->setParent($parent);
+        $this->setChild($child);
+    }
+
+    public function setType(RelationType $type) {
+        $this->type = $type;
+    }
+
+    public function setParent(string $parent) {
+        $this->parent = $parent;
+    }
+
+    public function setChild(string $child) {
+        $this->child = $child;
     }
 }

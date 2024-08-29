@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Core\DataMapper;
+use App\Core\Model;
 use App\Models\User;
 
 class UserMapper extends DataMapper {
-    protected string $tableName = "users";
-    protected string $class = User::class;
+    protected function getMappedClass(): Model {
+        return new User;
+    }
 }
