@@ -2,54 +2,97 @@
 
 namespace App\Queries;
 
+use App\Queries\Column;
 use App\Queries\QueryConditions;
 use App\Interfaces\iSelectQuery;
 
-class SelectQuery extends QueryConditions implements iSelectQuery {
-    protected string $table;
-    protected array $columns;
+class SelectQuery extends QueryConditions implements iSelectQuery
+{
     protected string $join;
 
-    public function columns(array $columns): Query {
-        $this->columns = $columns;
+    public function columns(array $columns, string|null $targetTable = null): Query
+    {
+        $cls = [];
+        foreach ($columns as $key => $value) {
+            if ( is_int($key) ) 
+            {
+                $cls[$value] = new Column($value);
+            } 
+            else 
+            {
+                $cls[$key] = new Column($key, $value);
+            }
+        }
+
+        if (!$targetTable) 
+        {
+            ( $this->getMainTable() )->setColumns($cls);
+        } else {
+            $this->tables[$targetTable]->setColumns($cls);
+        }
+
         return $this;
     }
 
-    public function leftJoin(string $table, string $originField, string $targetField): SelectQuery {
-        $this->join = $this->genJoin('LEFT', $table, $originField, $targetField);
+    public function leftJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
+    {
+
+        $this->join = $this->handleJoin('LEFT', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
-    public function rightJoin(string $table, string $originField, string $targetField): SelectQuery {
-        $this->join = $this->genJoin('RIGHT', $table, $originField, $targetField);
+    public function rightJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
+    {
+        $this->join = $this->handleJoin('RIGHT', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
-    public function innerJoin(string $table, string $originField, string $targetField): SelectQuery {
-        $this->join = $this->genJoin('INNER', $table, $originField, $targetField);
+    public function innerJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
+    {
+        $this->join = $this->handleJoin('INNER', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
-    public function fullJoin(string $table, string $originField, string $targetField): SelectQuery {
-        $this->join = $this->genJoin('FULL', $table, $originField, $targetField);
+    public function fullJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
+    {
+        $this->join = $this->handleJoin('FULL', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
+    public function write(): string
+    {
+        $columns = [];
+        $conditions = [];
 
-    public function write(): string {
-        $query = sprintf( 
+        foreach ($this->tables as $table) {
+            $columns = array_merge($columns, $table->getColumns());
+            $conditions = array_merge( $conditions, $table->getConditions() );
+        }
+
+        $query = sprintf(
             "SELECT %s FROM `%s` %s %s",
-
-            implode(', ', $this->columns),
-            $this->table,
-            isset($this->join) ? $this->join : '',
-            isset($this->conditions) ? " WHERE " . implode(' AND ', $this->conditions) : '',
+            implode(', ', $columns),
+            $this->getMainTable()->getName(),
+            $this->join ?? '',
+            $conditions ? " WHERE " . implode(" AND ", $conditions) : '',
         );
 
         return $query;
     }
 
-    private function genJoin(string $join, string $table, string $originField, string $targetField): string {
-        return sprintf("%s JOIN `%s` ON %s.%s = %s.%s", $join, $table, $this->table, $originField, $table, $targetField);
+    private function handleJoin(string $join, string $table, string $originField, string $targetField, array $targetColumns): string
+    {
+        $this->addTable($table);
+        $this->columns($targetColumns, $table);
+
+        $mT = $this->getMainTable();
+
+        // Decides, which commas should be used : ` or '
+        return sprintf("%s JOIN %s ON %s = %s",
+        $join, 
+        isset($this->tables[$table]) ? "`$table`" : "'$table'",
+        $mT->getAlias() ? "'{$mT->getAlias()}'.`$originField`" : "`{$mT->getName()}`.`$originField`",
+        isset($this->tables[$table]) ? "`{$this->tables[$table]->getName()}`.`$targetField`" : "'{$this->tables[$table]->getName()}'.`$targetField`",
+        );
     }
 }

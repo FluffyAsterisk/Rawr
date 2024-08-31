@@ -75,7 +75,7 @@ class Template {
 
     private function includeFiles($filename): string {
 		$code = file_get_contents($this->app->views_path().$filename);
-		$matches = array();
+		$matches = [];
 		preg_match_all('~^{{{\s*(extends|include)? ?\'?([^{\s].+?)\'?\s*}}}(\s+)?$~ism', $code, $matches, PREG_SET_ORDER);
 
 		foreach ($matches as $value) {

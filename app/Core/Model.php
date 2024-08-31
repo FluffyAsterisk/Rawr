@@ -4,14 +4,19 @@ namespace App\Core;
 
 abstract class Model {
     private mixed $data;
+    protected static $relations;
 
-    public function __construct(array $values = []) {
-        $class = $this::class;
+    public function __construct() {
+        $refl = new \ReflectionClass($this::class);
+        $relations = [];
 
-        if ($values && is_int( $values[0] )) { throw new \Exception("Params should be passed as associative array in $class constructor"); }
-
-        foreach ($values as $key => $value ) {
-            $this->{$key} = $value;
+        foreach ($refl->getMethods() as $method) {
+            if ($method->class != $this::class) { break; }
+            $relations[] = $method;
+        }
+    
+        foreach ($relations as $relation) {
+            $relation->invoke($this);
         }
     }
 
@@ -45,19 +50,24 @@ abstract class Model {
     }
 
     public function hasMany(string $class, $foreignKey = null, $ownerKey = null) {
-        $this->relations[] = new Relation(RelationType::OneToMany, $this->class, $class);
+        if (!$ownerKey) { $ownerKey = 'id'; }
+        if (!$foreignKey) { $foreignKey = strtolower( $this::class . '_id' ); }
+
+        static::$relations[] = new Relation(RelationType::OneToMany, $this->class, $class, $ownerKey, $foreignKey);
+
+        print_r($this::$relations);
     }
 
     public function belongsToMany(string $class, $foreignKey = null, $ownerKey = null) {
-        $this->relations[] = new Relation(RelationType::OneToMany, $class, $this->class);
+        self::$relations[] = new Relation(RelationType::OneToMany, $class, $this->class, $foreignKey, $ownerKey);
     }
 
     public function hasOne(string $class, $foreignKey = null, $ownerKey = null) {
-        $this->relations[] = new Relation(RelationType::OneToOne, $this->class, $class);
+        self::$relations[] = new Relation(RelationType::OneToOne, $this->class, $class, $ownerKey, $foreignKey);
     }
 
     public function belongsTo(string $class, $foreignKey = null, $ownerKey = null) {
-        $this->relations[] = new Relation(RelationType::OneToOne, $class, $this->class);
+        self::$relations[] = new Relation(RelationType::OneToOne, $class, $this->class, $foreignKey, $ownerKey);
     }
 }
 
@@ -69,24 +79,24 @@ enum RelationType: int {
 
 class Relation {
     public RelationType $type;
-    private string $parent;
-    private string $child;
+    private array $parent;
+    private array $child;
 
-    public function __construct(RelationType $type, string $parent, string $child) {
+    public function __construct(RelationType $type, string $parent, string $child,  string $ownerKey = null, string $foreignKey = null) {
         $this->setType($type);
-        $this->setParent($parent);
-        $this->setChild($child);
+        $this->setParent($parent, $ownerKey);
+        $this->setChild($child, $foreignKey);
     }
 
     public function setType(RelationType $type) {
         $this->type = $type;
     }
 
-    public function setParent(string $parent) {
-        $this->parent = $parent;
+    public function setParent(string $parent, string $parentKey) {
+        $this->parent = [$parent, $parentKey];
     }
 
-    public function setChild(string $child) {
-        $this->child = $child;
+    public function setChild(string $child, string $childKey) {
+        $this->child = [$child, $childKey];
     }
 }

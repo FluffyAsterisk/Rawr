@@ -6,8 +6,10 @@ use Psr\SimpleCache\CacheInterface;
 use App\Interfaces\CacheFrontInterface;
 use App\Enums\CacheType;
 
-class Cache implements CacheInterface {
-    public function __construct(private CacheInterface $cachingBack, private CacheFrontInterface $cachingFront, CacheType $cacheType = CacheType::Encoded) {
+class Cache implements CacheInterface
+{
+    public function __construct(private CacheInterface $cachingBack, private CacheFrontInterface $cachingFront, CacheType $cacheType = CacheType::Encoded)
+    {
         $this->setCacheType($cacheType);
     }
 
@@ -28,7 +30,7 @@ class Cache implements CacheInterface {
         return $this->cachingBack->delete($key);
     }
 
-    public function clear(): bool 
+    public function clear(): bool
     {
         return $this->cachingBack->clear();
     }
@@ -67,7 +69,8 @@ class Cache implements CacheInterface {
         return $this->cachingBack->has($key);
     }
 
-    private function setCacheType(\App\Enums\CacheType $type) {
+    private function setCacheType(\App\Enums\CacheType $type)
+    {
         $this->cachingFront->setCacheType($type);
     }
 
