@@ -21,4 +21,13 @@ class Sanitizer {
         $s = preg_replace('~^'.self::wrapSmbl.'~m', '', $string);
         return preg_replace('~'.self::wrapSmbl.'$~m', '', $s);
     }
+
+    public function customWrap(string $string, string $smbl) {
+        return $smbl . $string . $smbl;
+    }
+
+    public function customUnwrap(string $string, string $smbl) {
+        $s = preg_replace('~^'.$smbl.'~m', '', $string);
+        return preg_replace('~'.$smbl.'$~m', '', $s);
+    }
 }
