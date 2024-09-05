@@ -34,10 +34,23 @@ class Table {
         $r = [];
 
         foreach ($this->columns as $column) {
+            if ($column->name == '*') { $r[] = $column->name; continue; }
             $r[] = $column->alias ? "`{$this->getName()}`.`{$column->name}` AS '{$column->alias}'" : "`{$this->getName()}`.`{$column->name}`";
         }
 
         return $r;
+    }
+
+    public function getColumnsArray(): array {
+        return $this->columns;
+    }
+
+    public function getColumnsStrings(): array {
+        return array_map(function($col) 
+        {
+             return $col->name; 
+        }
+        , $this->columns);
     }
 
     public function hasColumn($column) {
@@ -48,7 +61,6 @@ class Table {
         $r = [];
 
         foreach ($this->conditions as $condition) {
-            
             $p = explode(' ', $condition);
             $p[0] = $this->hasColumn($p[0]) ? "`{$this->getName()}`.`{$p[0]}`" : "'{$p[0]}'";
             $r[] = implode(' ', $p);

@@ -8,7 +8,7 @@ use App\Interfaces\iSelectQuery;
 
 class SelectQuery extends QueryConditions implements iSelectQuery
 {
-    protected string $join;
+    protected array $joins;
 
     public function columns(array $columns, string|null $targetTable = null): Query
     {
@@ -37,25 +37,25 @@ class SelectQuery extends QueryConditions implements iSelectQuery
     public function leftJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
     {
 
-        $this->join = $this->handleJoin('LEFT', $table, $originField, $targetField, $targetColumns);
+        $this->joins[] = $this->handleJoin('LEFT', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
     public function rightJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
     {
-        $this->join = $this->handleJoin('RIGHT', $table, $originField, $targetField, $targetColumns);
+        $this->joins[] = $this->handleJoin('RIGHT', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
     public function innerJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
     {
-        $this->join = $this->handleJoin('INNER', $table, $originField, $targetField, $targetColumns);
+        $this->joins[] = $this->handleJoin('INNER', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
     public function fullJoin(string $table, string $originField, string $targetField, array $targetColumns): SelectQuery
     {
-        $this->join = $this->handleJoin('FULL', $table, $originField, $targetField, $targetColumns);
+        $this->joins[] = $this->handleJoin('FULL', $table, $originField, $targetField, $targetColumns);
         return $this;
     }
 
@@ -73,7 +73,7 @@ class SelectQuery extends QueryConditions implements iSelectQuery
             "SELECT %s FROM `%s` %s %s",
             implode(', ', $columns),
             $this->getMainTable()->getName(),
-            $this->join ?? '',
+            isset($this->joins) ? implode(' ', $this->joins) : '',
             $conditions ? " WHERE " . implode(" AND ", $conditions) : '',
         );
 

@@ -8,8 +8,6 @@ use App\Interfaces\iQueryValues;
 
 class InsertQuery extends Query implements iQuery, iQueryValues
 {
-    protected string $table;
-    protected array $columns;
     protected array $values;
     protected int $placeholderCount = 1;
 
@@ -17,28 +15,30 @@ class InsertQuery extends Query implements iQuery, iQueryValues
     {
         $this->values = $values;
 
+        $cls = [];
+
+        $values = is_array($values) ? $values[0] : $values;
+
+        foreach (array_flip($values) as $column) {
+            $cls[$column] = new Column($column);
+        }
+
+        ($this->getMainTable())->setColumns($cls);
+
         return $this;
     }
 
     public function write(): array
     {
         $values = $this->values;
-
-        if (is_array($values[0])) {
-            $placeholders = $this->insertMultiple($values);
-            $columns = array_keys($values[0]);
-        } else {
-            $placeholders = $this->insertOne($values);
-            $columns = array_keys($values);
-        }
-
+        $placeholders = (is_array($values[0])) ? $this->insertMultiple($values) : $this->insertOne($values);
+        
         $query = sprintf(
-            "INSERT INTO `%s` (%s) VALUES %s %s",
+            "INSERT INTO `%s` (%s) VALUES %s",
 
-            $this->table,
-            implode(', ', $columns),
+            ($this->getMainTable())->getName(),
+            implode(', ', $this->getMainTable()->getColumnsStrings()),
             $placeholders[0],
-            isset($this->conditions) ? " WHERE " . implode(' AND ', $this->conditions) : '',
         );
 
         return [$query, $placeholders[1]];
@@ -49,17 +49,17 @@ class InsertQuery extends Query implements iQuery, iQueryValues
         $r = '';
         $v = [];
 
-        foreach ($values as $key => $value) {
-            $p = ':' . $this->placeholderCount . 'v';
-            $r = $r . $p . ', ';
-            $v[$p] = $value;
+        foreach ($this->getMainTable()->getColumnsStrings() as $value) {
+            $p = ":{$this->placeholderCount}v";
+            $r = "$r$p, ";
+            $v[$p] = $values[$value];
 
             $this->placeholderCount += 1;
         }
 
         $r = rtrim($r, ', ');
 
-        return ['(' . $r . ')', $v];
+        return ["($r)", $v];
     }
 
     private function insertMultiple($columnsArray)
@@ -70,7 +70,7 @@ class InsertQuery extends Query implements iQuery, iQueryValues
         foreach ($columnsArray as $cArr) {
             $p = $this->insertOne($cArr);
             $v = array_merge($v, $p[1]);
-            $r .= $p[0] . ', ';
+            $r .= "$p[0], ";
         }
 
         $r = rtrim($r, ', ');

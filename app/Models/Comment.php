@@ -4,8 +4,8 @@ namespace App\Models;
 
 use App\Core\Model;
 
-class Post extends Model {
+class Comment extends Model {
     protected int|null $id;
     protected int $user_id;
-    protected string $title;
+    protected string $comment;
 }

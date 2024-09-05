@@ -12,6 +12,7 @@ use App\Interfaces\iQueryBuilder;
 class QueryBuilder implements iQueryBuilder
 {
     protected Query|null $queryObject;
+    protected array $relations = [];
 
     public function insert()
     {

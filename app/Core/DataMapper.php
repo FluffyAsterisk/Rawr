@@ -5,7 +5,7 @@ namespace App\Core;
 class DataMapper {
     public function __construct(private \PDO $pdo) {}
 
-    public function executeQuery(array|string $data, string $fetchClass) {
+    public function prepareQuery(array|string $data): \PDOStatement {
         if ( is_string($data) ) {
             $sql = $data;
             $values = [];
@@ -15,19 +15,10 @@ class DataMapper {
         }
 
         $stmt = $this->pdo->prepare($sql);
-        print_r($sql);
-
-        // $stmt->setFetchMode(\PDO::FETCH_CLASS, $fetchClass);
-        $stmt->setFetchMode(\PDO::FETCH_ASSOC);
 
         $stmt->execute($values);
-
-        print_r("<pre>");
-        print_r($stmt->fetchAll());
-        print_r("</pre>");
-        die();
-
-        return $stmt->fetchAll();
+        
+        return $stmt;
     }
 
     public function executeRaw(string $sql, string $fetchClass) {

@@ -7,7 +7,7 @@ use App\Queries\Table;
 
 abstract class Query implements iQuery
 {
-    protected array $tables;
+    public array $tables;
     public function addTable(string $tableName, string|null $alias = null): Query
     {
         $this->tables[$tableName] = new Table($tableName, $alias);
