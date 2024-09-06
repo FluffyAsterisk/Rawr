@@ -39,10 +39,9 @@ class FileCache implements CacheInterface {
 
     public function clear(): bool {
         $cache_dir = $this->app->cache_path();
-        $cache_files = scandir( $cache_dir );
         $r = true;
 
-        foreach (glob($cache_dir.'*') as $file) {
+        foreach (glob("$cache_dir*") as $file) {
             $r = $r && unlink($file);
         }
 
@@ -97,7 +96,7 @@ class FileCache implements CacheInterface {
             fclose($f);
 
             $s = $this->sanitizer->getWrapSmbl();
-            preg_match('~^'. $s .'\d+' . $s . '$~m', $firstLine, $ttl);
+            preg_match("~^$s\\d+$s\$~m", $firstLine, $ttl);
 
             if ($ttl) {
                 $ttl = intval( $this->sanitizer->unwrapString( $ttl[0] ) );
@@ -112,7 +111,7 @@ class FileCache implements CacheInterface {
     private function hasExpire($key): bool {
         $s = $this->sanitizer->getWrapSmbl();
         $fl = $this->getFirstLine($key);
-        return preg_match('~^'. $s .'\d+' . $s . '$~m', $fl);
+        return preg_match("~^$s\\d+$s\$~m", $fl);
     }
 
     private function getFirstLine($key):string|bool {

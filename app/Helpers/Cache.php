@@ -2,9 +2,9 @@
 
 namespace App\Helpers;
 
-use Psr\SimpleCache\CacheInterface;
-use App\Interfaces\CacheFrontInterface;
 use App\Enums\CacheType;
+use App\Interfaces\CacheFrontInterface;
+use Psr\SimpleCache\CacheInterface;
 
 class Cache implements CacheInterface
 {
@@ -49,8 +49,6 @@ class Cache implements CacheInterface
 
     public function setMultiple(iterable $values, \DateInterval|int|null $ttl = null): bool
     {
-        $cachhingFront = $this->cachingFront;
-
         $encodedData = [];
         foreach ($values as $key => $value) {
             $encodedData[$key] = $this->cachingFront->encode($value);
@@ -69,7 +67,7 @@ class Cache implements CacheInterface
         return $this->cachingBack->has($key);
     }
 
-    private function setCacheType(\App\Enums\CacheType $type)
+    private function setCacheType(CacheType $type)
     {
         $this->cachingFront->setCacheType($type);
     }

@@ -7,6 +7,7 @@ class App {
     private const PROJECT_ROOT = __DIR__.'/../../';
     private const VIEWS_PATH = __DIR__.'/../../resources/views/';
     private const CACHE_PATH = __DIR__.'/../../cache/';
+    private const LOGS_PATH = __DIR__.'/../../logs/';
 
     public function __construct(private \App\Helpers\Sanitizer $sanitizer) {}
 
@@ -20,6 +21,10 @@ class App {
 
     public function cache_path(): string {
         return self::CACHE_PATH;
+    }
+
+    public function logs_path(): string {
+        return self::LOGS_PATH;
     }
 
     public function db_cred(): array {

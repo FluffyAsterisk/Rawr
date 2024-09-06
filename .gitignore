@@ -5,3 +5,4 @@ vendor/
 resources/css/*.scss
 resources/css/components/
 cache/*
+logs/*

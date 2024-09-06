@@ -2,8 +2,4 @@
 
 namespace App\Core;
 
-use App\Helpers\Request;
-
-class Controller {
-
-}
+abstract class Controller {}

@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types = 1);
-
 namespace App\Caching;
 
 use Psr\SimpleCache\CacheInterface;
@@ -54,7 +52,7 @@ class RedisCache implements CacheInterface {
         $result = $this->redis->mSet($values);
 
         if ($ttl !== null) {
-            $ttl = is_int($ttl) ? $tll : date_create('@0')->add($ttl)->getTimestamp();
+            $ttl = is_int($ttl) ? $ttl : date_create('@0')->add($ttl)->getTimestamp();
 
             foreach (array_keys($values) as $key) {
                 $this->redis->expire($key, (int) $ttl);

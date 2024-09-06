@@ -3,17 +3,21 @@
 namespace App\Core;
 
 use App\Core\App;
-use App\Helpers\Router;
-use App\Helpers\Request;
 use App\Core\ServiceContainer;
-use App\Helpers\Sanitizer;
-use App\Helpers\Cache;
+use App\Core\View;
 use App\Enums\CacheType;
+use App\Helpers\Cache;
+use App\Helpers\EventManager;
+use App\Helpers\Loger;
+use App\Helpers\Request;
+use App\Helpers\Router;
+use App\Helpers\Sanitizer;
 
 class Bootstrap {
     public static function init() {
         $c = ServiceContainer::init();
         self::bindServices($c);
+        self::registerEvents($c);
 
         $app = $c->get(App::class);
         $app->loadConfig( $app->base_path().'.env' );
@@ -52,6 +56,10 @@ class Bootstrap {
             return new App( $c->get(Sanitizer::class) );
         });
 
+        $c->bind(EventManager::class, function(ServiceContainer $c) {
+            return new EventManager();
+        });
+
         $c->bind(\PDO::class, function(ServiceContainer $c) 
             {
                 $credentials = ( $c->get(App::class) )->db_cred();
@@ -80,6 +88,28 @@ class Bootstrap {
 
             return new Cache( $c->get($CACHE_ENGINE), $c->get(\App\Caching\BaseCacheFront::class), CacheType::fromName($CACHE_TYPE) );
         });
+    }
 
+    private static function registerEvents(ServiceContainer $c) {
+        $manager = $c->get(EventManager::class);
+
+        $manager->registerEvent('pageRendered', function($data) use ($c) {
+            $loger = $c->get(Loger::class);
+            $loger->setName('view');
+            $loger->info("Rendering page '" . $data['pageName'] . "'...");
+        });
+
+        $manager->registerEvent('serverError', function($data) use ($c) {
+            $loger = $c->get(Loger::class);
+            $loger->setName('server');
+            $loger->error( array_key_exists('loger_message', $data) ? $data['loger_message'] : $data['error_message'] );
+
+			( $c->get(View::class) )->render('error', [
+				'error_code' => $data['error_code'],
+				'error_message' => $data['error_message'],
+			]);
+
+            die();
+        });
     }
 }
