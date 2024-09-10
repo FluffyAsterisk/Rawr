@@ -1,0 +1,13 @@
+<?php
+
+use App\Migrations\MigrationsManager;
+
+require_once __DIR__ ."/vendor/autoload.php";
+
+switch ($argv[1]) {
+    case "migrate":
+        $manager = new MigrationsManager();
+        require_once __DIR__ ."/app/Migrations/MigrationsManager.php";
+        $manager->migrate();
+        echo "Migrations successfull";
+}

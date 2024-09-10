@@ -71,7 +71,9 @@ class Bootstrap {
                 $dsn = isset( $DB_PORT ) ? $dsn . "port={$DB_PORT};" : $dsn;
 
                 try {
-                    return new \PDO($dsn);
+                    $pdo = new \PDO($dsn);
+                    $pdo->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+                    return $pdo;
                 } catch (\PDOException $e) {
                     throw new \PDOException($e->getMessage(), (int) $e->getCode());
                 }

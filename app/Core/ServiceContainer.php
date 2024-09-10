@@ -10,7 +10,7 @@ class ServiceContainer implements ContainerInterface {
     private static $isAutoBind = 0;
     private $allocator = [];
 
-    public function __construct(bool $autoBind) {
+    public function __construct(bool $autoBind = false) {
         if ( isset(self::$instance) ) { throw new ContainerException("Container should be created using init method, not construct"); }
         self::$isAutoBind = $autoBind;
     }
