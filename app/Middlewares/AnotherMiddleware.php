@@ -6,7 +6,7 @@ use App\Core\Middleware;
 class AnotherMiddleware extends Middleware {
     public function handle() {
         if (true) {
-            $this->pass();
+            return $this->pass();
         }
 
         $this->fail("Middlewares is COOOOOOL", 124534324132);

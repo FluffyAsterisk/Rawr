@@ -6,3 +6,6 @@ resources/css/*.scss
 resources/css/components/
 cache/*
 logs/*
+resources/js/*
+resources/media/*
+resources/views/*

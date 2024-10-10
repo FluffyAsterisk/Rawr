@@ -5,18 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/base.css">
     <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon"> 
-    <title>Help desk</title>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <title>{{ $title }}</title>
 </head>
 <body>
     <div class="wrapper | text-end">
-        <header class="bg-primary-400 pd-20">
-            <div class="container">
-                <ul>
-                    <li><a href="#">Link</a></li>
-                    <li><a href="#">Page</a></li>
-                    <li><a href="#">Another Page</a></li>
-                </ul>
-            </div>
-        </header>
-
         <main>

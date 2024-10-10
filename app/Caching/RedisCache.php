@@ -74,4 +74,10 @@ class RedisCache implements CacheInterface {
         return $this->redis->exists($key) == 1;
     }
 
+    
+    public function ttl(string $key): int
+    {
+        return $this->redis->ttl($key);
+    }
+
 }

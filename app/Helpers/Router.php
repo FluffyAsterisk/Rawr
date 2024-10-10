@@ -44,8 +44,8 @@ class Router {
     }
 
     public function handleRequest($request) {
-		$routes = $this->ROUTES[ $request['METHOD'] ];
-		$uri = parse_url( $request['URI'] )['path'];
+		$routes = $this->ROUTES[ $request['REQUEST_METHOD'] ];
+		$uri = parse_url( $request['REQUEST_URI'] )['path'];
 
 		if ( !array_key_exists($uri, $routes) ) {
 			$this->eventManager->notify('serverError', [
@@ -61,7 +61,7 @@ class Router {
 		{
 			try 
 			{
-				$this->middlewareManager->resolve($request['METHOD'], $uri);
+				$this->middlewareManager->resolve($request['REQUEST_METHOD'], $uri);
 			} 
 			catch (MiddlewareException $e) 
 			{

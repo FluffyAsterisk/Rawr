@@ -85,7 +85,8 @@ class FileCache implements CacheInterface {
         return file_exists( $this->app->cache_path() . $key ) && !$this->isExpired($key);
     }
 
-    private function isExpired($key): bool {
+    public function ttl(string $key): int
+    {
         $filepath = $this->app->cache_path() . $key;
 
         if ( file_exists($filepath) ) {
@@ -98,14 +99,22 @@ class FileCache implements CacheInterface {
             $s = $this->sanitizer->getWrapSmbl();
             preg_match("~^$s\\d+$s\$~m", $firstLine, $ttl);
 
-            if ($ttl) {
-                $ttl = intval( $this->sanitizer->unwrapString( $ttl[0] ) );
+            $ttl = intval( $this->sanitizer->unwrapString( $ttl[0] ) );
 
-                return $ttl < time();
-            }
-
-            return false;
+            return $ttl;
         }
+
+        throw new CacheException("Cache entry $key does not exists");
+    }
+
+    private function isExpired($key): bool {
+        if ( $this->hasExpire($key) )
+        {
+            $ttl = $this->ttl($key);
+            return $ttl < time();
+        }
+
+        return false;
     }
 
     private function hasExpire($key): bool {
@@ -141,7 +150,7 @@ class FileCache implements CacheInterface {
                     continue;
                 }
 
-                $file = $file . $line;
+                $file .= $line;
             }
 
             fclose($f);

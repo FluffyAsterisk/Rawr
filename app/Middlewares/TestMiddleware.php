@@ -10,8 +10,8 @@ class TestMiddleware extends Middleware {
 
     public function handle() {
         $r = $this->request->capture();
-
-        if ( str_contains($r['URI'], 'controll') ) 
+        
+        if ( false ) 
         {
             $this->fail("URI should not contain 'controll' substring", 500);
         }

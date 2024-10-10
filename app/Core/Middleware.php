@@ -10,15 +10,13 @@ abstract class Middleware {
     abstract public function handle();
 
     public function setNext(Middleware $next) {
-        if ( !isset($this->last) ) 
-        {
+        if ( !isset($this->last) ): 
             $this->next = $next;
-            $this->last = $next;
-        } 
-        else 
-        {
+        else:
             $this->last->next = $next;
-        }
+        endif;
+
+        $this->last = $next;
     }
 
     protected function pass() {

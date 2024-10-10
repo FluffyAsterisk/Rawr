@@ -15,6 +15,8 @@ use App\Helpers\Sanitizer;
 
 class Bootstrap {
     public static function init() {
+        session_start();
+
         $c = ServiceContainer::init();
         self::bindServices($c);
         self::registerEvents($c);

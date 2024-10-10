@@ -46,9 +46,13 @@ class MigrationsManager
     private function getLocalMigrations() {
         $migrations = glob( __DIR__ . "/../../migrations/*" );
         $migInst = [];
+        $stmt = $this->db->query("SELECT MAX(`batch`) FROM `migrations`");$stmt->execute();
+        $batchCount = $stmt->fetchAll()[0][0] + 1;
 
         foreach ( $migrations as $migration ) 
         {
+            // echo "INSERT INTO `migrations` (name, batch) VALUES (" . basename($migration) . ', ' . $batchCount . ")\n";
+            $stmt = $this->db->query("INSERT INTO `migrations` (`name`, `batch`) VALUES ('" . basename($migration) . '\', ' . $batchCount . ")");
             $migInst[] = require_once $migration;
         }
 
@@ -96,7 +100,7 @@ class MigrationsManager
         $migrationsSQL = Schema::prepareMigrations();
 
         foreach ($migrationsSQL as $sql) {
-            $this->db->query($sql);
+            // $this->db->query($sql);
         }
     }
 }

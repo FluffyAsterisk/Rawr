@@ -14,28 +14,36 @@
   background-color: rgba(246, 246, 246, 0.9647058824);
 }
 
+.clr-neutral-300 {
+  color: #eeeeee;
+}
+
+.bg-neutral-300 {
+  background-color: #eeeeee;
+}
+
 .clr-neutral-900 {
-  color: #1f3049;
+  color: #101825;
 }
 
 .bg-neutral-900 {
-  background-color: #1f3049;
+  background-color: #101825;
 }
 
 .clr-primary-400 {
-  color: #AAC4FF;
+  color: #40c375;
 }
 
 .bg-primary-400 {
-  background-color: #AAC4FF;
+  background-color: #40c375;
 }
 
 .clr-primary-500 {
-  color: #B1B2FF;
+  color: #15a24c;
 }
 
 .bg-primary-500 {
-  background-color: #B1B2FF;
+  background-color: #15a24c;
 }
 
 .clr-secondary-400 {
@@ -52,6 +60,22 @@
 
 .bg-secondary-500 {
   background-color: #D2DAFF;
+}
+
+.clr-other-rd {
+  color: #fce1e0;
+}
+
+.bg-other-rd {
+  background-color: #fce1e0;
+}
+
+.clr-other-drd {
+  color: #814a4a;
+}
+
+.bg-other-drd {
+  background-color: #814a4a;
 }
 
 .pd-8 {
@@ -142,6 +166,38 @@
   margin-bottom: 3rem;
 }
 
+.mtp-8 {
+  margin-top: 0.5rem;
+}
+
+.mtp-12 {
+  margin-top: 0.75rem;
+}
+
+.mtp-16 {
+  margin-top: 1rem;
+}
+
+.mtp-20 {
+  margin-top: 1.25rem;
+}
+
+.mtp-24 {
+  margin-top: 1.5rem;
+}
+
+.mtp-32 {
+  margin-top: 2rem;
+}
+
+.mtp-36 {
+  margin-top: 2.25rem;
+}
+
+.mtp-48 {
+  margin-top: 3rem;
+}
+
 /* Box sizing rules */
 *,
 *::before,
@@ -217,6 +273,10 @@ textarea:not([rows]) {
   margin-top: var(--flow-spacer, 1rem);
 }
 
+.high-flow > * + * {
+  margin-top: 2rem;
+}
+
 .grid-flow {
   display: grid;
   gap: var(--gap, 1rem);
@@ -229,22 +289,53 @@ textarea:not([rows]) {
   align-items: center;
 }
 
+.flex-column {
+  display: flex;
+  gap: var(--gap, 1rem);
+  flex-direction: column;
+  align-items: center;
+}
+
 .cols-2 {
   display: grid;
-  grid-template-columns: repeat(2, auto);
-  gap: 1.25rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 .cols-3 {
   display: grid;
-  grid-template-columns: repeat(3, auto);
-  gap: 1.25rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
 
 .cols-4 {
   display: grid;
-  grid-template-columns: repeat(4, auto);
-  gap: 1.25rem;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+
+.cols-5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+.cols-6 {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1rem;
+}
+
+.cols-7 {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 1rem;
+}
+
+.cols-8 {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 1rem;
 }
 
 .grid-row-full {
@@ -283,6 +374,11 @@ textarea:not([rows]) {
   border-radius: 100%;
 }
 
+body {
+  font-family: "Segoe UI", sans-serif;
+  font-size: 1rem;
+}
+
 .wrapper {
   display: flex;
   flex-direction: column;
@@ -314,10 +410,19 @@ img {
   max-width: 100%;
 }
 
+textarea,
 input {
   width: min(500px, 100% - 2vw);
   padding: 0.5rem;
   font-size: 1.125rem;
+  border-radius: 5px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  resize: none;
+}
+textarea:focus,
+input:focus {
+  border: 1px solid #40c375;
+  outline: none;
 }
 
 button {
@@ -326,13 +431,380 @@ button {
   cursor: pointer;
 }
 
-.info img {
-  aspect-ratio: 1/1;
-  -o-object-position: 0 0;
-     object-position: 0 0;
-  max-width: 300px;
+.card {
+  border-radius: 7px;
+  box-shadow: 0 0 7px 3px rgba(0, 0, 0, 0.1);
 }
 
-form input {
-  width: min(500px, 98vw);
+.tag {
+  border-radius: 1rem;
+  padding: 0.5rem;
+}
+.tag.high {
+  color: #814a4a;
+  background-color: #fce1e0;
+}
+.tag.medium {
+  color: #814a4a;
+  background-color: #fce1e0;
+}
+.tag.low {
+  color: #814a4a;
+  background-color: #fce1e0;
+}
+
+.fullscreen_form {
+  display: flex;
+  align-items: center;
+  flex-grow: 1;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+.fullscreen_form .container {
+  background-color: #ffffff;
+}
+.fullscreen_form form {
+  margin-inline: auto;
+}
+
+.registration-form form {
+  width: min(35rem, 96vw);
+}
+.registration-form form label {
+  width: min(500px, 100% - 2vw);
+}
+.registration-form button {
+  background-color: #40c375;
+  color: #ffffff;
+  border: none;
+  border-radius: 7px;
+  padding-block: 0.75rem;
+}
+.registration-form img {
+  max-width: 300px;
+  margin-inline: auto;
+}
+
+.with_sidebar {
+  margin-left: min(21rem, 25%);
+}
+
+.sidebar {
+  position: fixed;
+  height: 100%;
+  width: min(21rem, 25%);
+  color: #ffffff;
+  background-color: #101825;
+  padding: 1.5rem;
+}
+.sidebar img {
+  max-height: 5rem;
+}
+.sidebar .main_menu,
+.sidebar .sub_menu {
+  width: 100%;
+}
+.sidebar li {
+  min-width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  margin-block: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.sidebar li.selected {
+  background-color: #15a24c;
+}
+.sidebar li:hover {
+  color: #40c375;
+}
+.sidebar li span {
+  margin-right: 0.5rem;
+}
+.sidebar li a {
+  width: 100%;
+}
+.sidebar .lists-container {
+  position: relative;
+  height: calc(100vh - 5rem - 3rem);
+  justify-content: space-between;
+}
+
+.workspace {
+  width: calc(100% - 21rem);
+  padding-block: 2rem;
+  padding-inline: 5rem;
+  min-height: 100vh;
+  background-color: rgba(246, 246, 246, 0.9647058824);
+}
+.workspace .container {
+  width: 100%;
+  max-width: none;
+}
+
+button {
+  background-color: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 7px;
+  font-size: 1rem;
+  padding-inline: 1rem;
+}
+
+.button_alt {
+  background-color: #40c375;
+  color: #ffffff;
+}
+
+.dashboard .container {
+  grid-template-rows: repeat(1fr, 4);
+}
+.dashboard .container > * {
+  min-height: 10rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 7px;
+  text-align: start;
+  background-color: #ffffff;
+  box-shadow: 0 0 1px 0px rgba(0, 0, 0, 0.2);
+}
+.dashboard .container input {
+  width: 100%;
+}
+.dashboard .container span {
+  font-size: 3rem;
+  font-weight: 300;
+}
+.dashboard .container label {
+  display: block;
+  width: 100%;
+  margin-bottom: 1rem;
+  font-weight: 700;
+}
+.dashboard .container .greeting {
+  grid-column: 1/-1;
+}
+.dashboard .container .completed_tasks {
+  grid-column: 1/4;
+  grid-row: 2;
+}
+.dashboard .container .open_tickets {
+  grid-column: 4/7;
+  grid-row: 2;
+}
+.dashboard .container .todo_list {
+  grid-column: 1/5;
+  grid-row: 3;
+}
+.dashboard .container .todo_list input::after {
+  content: "salkdjfkaldsf";
+  background-color: black;
+  z-index: 5;
+}
+.dashboard .container .todo_list li {
+  display: flex;
+  width: 100%;
+  align-items: center;
+}
+.dashboard .container .todo_list li:first-child {
+  margin-top: 0.5rem;
+}
+.dashboard .container .todo_list li .task_name {
+  font-size: 1rem;
+  flex-grow: 1;
+}
+.dashboard .container .todo_list li .material-icons {
+  font-size: 1rem;
+}
+.dashboard .container .personal_files {
+  grid-column: 5/8;
+  grid-row: 3;
+}
+
+.tickets .container,
+.users .container {
+  position: relative;
+  display: table;
+  border-radius: 1rem 1rem 0 0;
+  overflow: hidden;
+  border-collapse: collapse;
+}
+.tickets .container .filter,
+.tickets .container .col,
+.users .container .filter,
+.users .container .col {
+  display: table-cell;
+  padding: 1rem;
+  text-align: left;
+}
+.tickets .container label,
+.users .container label {
+  display: block;
+  text-align: left;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+.tickets .container input,
+.users .container input {
+  width: 100%;
+  font-size: 1rem;
+}
+.tickets .container a,
+.users .container a {
+  text-decoration: underline;
+}
+.tickets .container a:hover,
+.users .container a:hover {
+  color: #40c375;
+}
+.tickets .container .row,
+.users .container .row {
+  display: table-row;
+  background-color: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 1rem;
+}
+.tickets .container .row:first-child,
+.users .container .row:first-child {
+  background-color: #eeeeee;
+  border: none;
+}
+.tickets .container .row:last-child,
+.users .container .row:last-child {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+  border: none;
+  border-radius: 0 0 1rem 1rem;
+}
+.tickets .container .row:last-child div,
+.users .container .row:last-child div {
+  display: flex;
+  gap: 1.5rem;
+  max-height: 3rem;
+  justify-content: space-between;
+  align-items: center;
+}
+.tickets .container .row:last-child div input,
+.users .container .row:last-child div input {
+  width: 4rem;
+}
+
+.users .col:first-child {
+  font-weight: bold;
+}
+.users .buttons > * {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+.users .buttons > * button {
+  font-size: 1rem;
+  width: auto;
+  max-width: 35%;
+}
+
+.newUserForm,
+.createTicketForm {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+.newUserForm .container,
+.createTicketForm .container {
+  background-color: rgba(246, 246, 246, 0.9647058824);
+  width: min(65rem, 47%);
+}
+.newUserForm form,
+.createTicketForm form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.newUserForm form input,
+.newUserForm form textarea,
+.createTicketForm form input,
+.createTicketForm form textarea {
+  width: 100%;
+}
+.newUserForm form .cancel_create,
+.newUserForm form .priority_buttons,
+.createTicketForm form .cancel_create,
+.createTicketForm form .priority_buttons {
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
+}
+.newUserForm form input[type=radio],
+.createTicketForm form input[type=radio] {
+  display: none;
+}
+.newUserForm form input[type=radio]:checked + label,
+.createTicketForm form input[type=radio]:checked + label {
+  background-color: #40c375;
+  color: #ffffff;
+}
+.newUserForm form label,
+.createTicketForm form label {
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+}
+.newUserForm form button,
+.createTicketForm form button {
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  max-width: 16rem;
+}
+
+.newUserForm .container {
+  width: min(50rem, 35%);
+}
+.newUserForm label {
+  width: auto;
+}
+.newUserForm .btns {
+  display: flex;
+  gap: 1.25rem;
+}
+
+.ticket .buttons,
+.ticket .container {
+  display: flex;
+  gap: 1rem;
+}
+.ticket .container {
+  padding-block: 5rem;
+}
+.ticket .general_info {
+  width: 65%;
+  padding: 1rem;
+}
+.ticket .buttons {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 1.25rem;
+}
+.ticket .buttons button {
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-inline: 0.5rem;
+}
+.ticket .buttons button span {
+  margin-right: 0.25rem;
+}
+.ticket .misc_info {
+  width: 35%;
+  padding: 1rem;
+  border-left: 1px solid rgba(0, 0, 0, 0.1);
 }/*# sourceMappingURL=base.css.map */

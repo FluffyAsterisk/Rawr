@@ -67,9 +67,13 @@ class Cache implements CacheInterface
         return $this->cachingBack->has($key);
     }
 
+    public function ttl($key)
+    {
+        return $this->cachingBack->ttl($key);
+    }
+
     private function setCacheType(CacheType $type)
     {
         $this->cachingFront->setCacheType($type);
     }
-
 }

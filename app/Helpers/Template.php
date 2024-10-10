@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Helpers;
+use App\Exceptions\MissingTemplateException;
 
 class Template {
 	private $filename;
@@ -11,7 +12,7 @@ class Template {
 	public function __construct(private \App\Core\App $app, private \App\Helpers\Cache $cache) {}
 
     public function init(string $filename, bool $enableCache = False, int $ttl = 500) {
-		$this->filename = str_contains($filename, '.php') ? $filename : $filename . '.php';
+		$this->filename = str_contains($filename, '.php') ? $filename : "$filename.php";
 		$this->ttl = $ttl;
 		$this->cacheEnabled = $enableCache;
 
@@ -39,12 +40,18 @@ class Template {
 
     private function compile(): string {
 		$filename = $this->filename;
-
-		if ($this->cacheEnabled && $this->cache->has($filename)) { return $this->cache->get($filename); }
-
 		$file_path = $this->app->views_path().$filename;
+	
+		if (
+			$this->cacheEnabled &&
+			$this->cache->has($filename) && 
+			filemtime($file_path) < time() - $this->ttl
+		)
+		{
+			return $this->cache->get($filename); 
+		}
 
-		file_exists($file_path) ?: throw new \App\Exceptions\MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file_path));
+		file_exists($file_path) ?: throw new MissingTemplateException(sprintf( 'File %s doesn\'t exist', $file_path));
 
 		$code = $this->includeFiles($filename);
 		$code = $this->compileTemplate($code);
@@ -62,7 +69,7 @@ class Template {
     }
 
     private function compilePhp($code):string {
-		return preg_replace('~^\s+{\s*([^{\s].+?)\s*}\s+?$~ism', '<?php $1 ?>', $code);
+		return preg_replace('~(?!{).{\s(.+)\s}~im', ' <?php $1 ?>', $code);
     }
 
     private function compileEcho($code):string {
@@ -70,7 +77,7 @@ class Template {
     }
 
     private function compilePrettyPrint($code):string {
-		return preg_replace('~^\s+?{{\s*pretty ([^{\s].+?)\s*}}\s+?$~ism', '<pre style="text-align:left;"><?php print_r($1); ?></pre>', $code);
+		return preg_replace('~^\s+?{{\s*pretty ([^{\s].+?)\s*}}\s+?$~im', '<pre style="text-align:left;"><?php print_r($1); ?></pre>', $code);
     }
 
     private function includeFiles($filename): string {
