@@ -7,6 +7,7 @@ use App\Exceptions\MigrationException;
 
 class MigrationsManager
 {
+    private $migrations_path = __DIR__ . "/../../migrations/";
     private \PDO $db;
     private $migrations;
     private $batchName;
@@ -51,8 +52,7 @@ class MigrationsManager
 
         foreach ( $migrations as $migration ) 
         {
-            // echo "INSERT INTO `migrations` (name, batch) VALUES (" . basename($migration) . ', ' . $batchCount . ")\n";
-            $stmt = $this->db->query("INSERT INTO `migrations` (`name`, `batch`) VALUES ('" . basename($migration) . '\', ' . $batchCount . ")");
+            $this->db->query("INSERT INTO `migrations` (`name`, `batch`) VALUES ('" . basename($migration) . '\', ' . $batchCount . ") ON DUPLICATE KEY UPDATE migrated_at = CURRENT_TIMESTAMP");
             $migInst[] = require_once $migration;
         }
 
@@ -91,16 +91,53 @@ class MigrationsManager
         return $stmt->fetchAll(\PDO::FETCH_ASSOC);
     }
 
-    public function migrate() {
+    public function migrate() 
+    {
         foreach ($this->getLocalMigrations() as $migration) 
         {
             $migration->up();
         }
 
-        $migrationsSQL = Schema::prepareMigrations();
+        $this->executeMigrations( Schema::prepareMigrations() );
+    }
 
-        foreach ($migrationsSQL as $sql) {
-            // $this->db->query($sql);
+    public function dropBatch(int $batchNumber)
+    {
+        $stmt = $this->db->query("SELECT * FROM `migrations` WHERE `batch` = $batchNumber");
+        $stmt->execute();
+        $migrations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        $this->db->query("DELETE FROM `migrations` WHERE `batch` = $batchNumber");
+
+        foreach ($migrations as $migration)
+        {
+            $m = require_once $this->migrations_path . $migration['name'];
+            $m->down();
+        }
+
+        $this->executeMigrations( Schema::prepareMigrations() );
+    }
+
+    public function dropByName($name)
+    {
+        $stmt = $this->db->query("SELECT * FROM `migrations` WHERE `name` = '$name'");
+        $stmt->execute();
+        $migrations = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        $this->db->query("DELETE FROM `migrations` WHERE `name` = $name");
+
+        !empty($migrations) ?: throw new \Exception("Migration doesn't exist or not executed") ;
+
+        $m = require_once $this->migrations_path . $name;
+        $m->down();
+
+        $this->executeMigrations( Schema::prepareMigrations() );
+    }
+
+    private function executeMigrations($migrationsSQL)
+    {
+        foreach ($migrationsSQL as $sql) 
+        {
+            $this->db->query($sql);
         }
     }
 }

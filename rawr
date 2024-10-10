@@ -9,4 +9,21 @@ switch ($argv[1]) {
         $manager = new MigrationsManager();
         $manager->migrate();
         echo "Migrations successfull";
+        break;
+    case "drop":
+        $manager = new MigrationsManager();
+        
+        switch ($argv[2])
+        {
+            case "--batch":
+                is_int((int) $argv[3]) ?: throw new Exception("Batch number should be an integer!");
+                $manager->dropBatch($argv[3]);
+                break;
+            case "--name":
+                is_string($argv[3]) ?: throw new Exception("Batch name should be a string!");
+                $manager->dropByName($argv[3]);
+                break;
+        }
+
+        break;
 }

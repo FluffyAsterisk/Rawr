@@ -16,7 +16,7 @@ class Schema {
         return array_map(function($table) { return $table->build(); }, self::$tables);
     }
 
-    public static function dropIfExists($tableName) {
+    public static function dropIfExists(string $tableName) {
         $o = new class {
             public function build() {
                 return "DROP TABLE IF EXISTS `{$this->tableName}`";

@@ -13,7 +13,7 @@ class Blueprint {
 
     public function id() {
         $this->id = new ColumnBlueprint('id', 'int', 11);
-        $this->id->index();
+        $this->id->primary();
         $this->id->ai();
     }
 
@@ -72,14 +72,15 @@ class Blueprint {
 
         foreach ($properties as $prop) {
             $columns[] = sprintf(
-                "`%s` %s%s %s%s%s%s",
+                "`%s` %s%s %s%s%s%s%s",
                 $prop->name,
                 $prop->type,
                 isset($prop->length) ? "({$prop->length})" : "",
                 $prop->isNullable ? "NULL" : "NOT NULL",
                 $prop->onDefault ? 
-                    (is_object($prop->onDefault) ? " DEFAULT {$prop->onDefault->name}" : "DEFAULT {$prop->onDefault}") 
-                    : ($prop->isAutoIncrement ? " PRIMARY KEY AUTO_INCREMENT" : ""),
+                    (is_object($prop->onDefault) ? " DEFAULT {$prop->onDefault->name}" : " DEFAULT {$prop->onDefault}") : "",
+                $prop->isPrimary ? " PRIMARY KEY" : "",
+                $prop->isAutoIncrement ? " AUTO_INCREMENT" : "",
                 $prop->attributes ? " " . implode(' ', array_map(function($attr) { return $attr->value; }, $prop->attributes)) : "",
                 $prop->comment ? " COMMENT '{$prop->comment}'" : "",
             );
@@ -87,6 +88,11 @@ class Blueprint {
             if ($prop->isIndex) 
             {
                 $indexes[] = "INDEX `{$prop->name}_index` (`$prop->name`)";
+            }
+
+            if ($prop->isUnique)
+            {
+                $indexes[] = "UNIQUE (`$prop->name`)";
             }
         }
 

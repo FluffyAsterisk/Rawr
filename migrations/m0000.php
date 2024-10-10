@@ -10,9 +10,9 @@ use App\Migrations\Schema;
 return new class extends Migration {
     public function up() {
         Schema::create('migrations', function(Blueprint $table) {
-            $table->id();
-            $table->string('name')->length(75);
-            $table->timestamp('created_at')->default(MySQLDefault::CURRENT_TIMESTAMP);
+            $table->string('name')->length(75)->primary();
+            $table->int('batch');
+            $table->timestamp('migrated_at')->default(MySQLDefault::CURRENT_TIMESTAMP);
         });
     }
 
@@ -20,11 +20,3 @@ return new class extends Migration {
         Schema::dropIfExists('migrations');
     }
 };
-
-// CREATE TABLE Persons (
-//     PersonID int,
-//     LastName varchar(255),
-//     FirstName varchar(255),
-//     Address varchar(255),
-//     City varchar(255)
-// );
